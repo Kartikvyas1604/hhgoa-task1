@@ -25,7 +25,24 @@ function titleFor(name: string | null): string {
   return BUILDERS[hash % BUILDERS.length];
 }
 
+const VARIANT_THEMES: Record<
+  string,
+  { bg: string; panel: string; accent: string; accentAlt: string; terminal: string }
+> = {
+  sunset: { bg: "#0a110c", panel: "#101b13", accent: "#f9e24c", accentAlt: "#ea3380", terminal: "#7fff9e" },
+  jade: { bg: "#07130e", panel: "#0d1f17", accent: "#7fff9e", accentAlt: "#2c663e", terminal: "#f9e24c" },
+  monsoon: { bg: "#120a10", panel: "#1c1118", accent: "#ea3380", accentAlt: "#f9e24c", terminal: "#7fff9e" },
+};
+
 type FontSpec = { name: string; data: ArrayBuffer; weight: 400 | 700; style: "normal" };
+
+function rgba(hex: string, alpha: number): string {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
 
 let geistFont: FontSpec | null = null;
 
@@ -58,6 +75,8 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const format = searchParams.get("format") === "card" ? "card" : "pfp";
+    const variant = searchParams.get("variant");
+    const theme = VARIANT_THEMES[variant ?? "sunset"] ?? VARIANT_THEMES.sunset;
     const name = searchParams.get("name");
     const role = searchParams.get("role");
     const title = titleFor(name);
@@ -86,7 +105,7 @@ export async function GET(request: Request) {
             width: "100%",
             height: "100%",
             display: "flex",
-            background: "#0a110c",
+            background: theme.bg,
             color: "#eef1e7",
             position: "relative",
             overflow: "hidden",
@@ -101,8 +120,7 @@ export async function GET(request: Request) {
               height: 700,
               borderRadius: "50%",
               transform: "translateX(-50%)",
-              background:
-                "radial-gradient(circle, rgba(249,226,76,0.45) 0%, rgba(232,67,122,0.16) 42%, transparent 70%)",
+              background: `radial-gradient(circle, ${rgba(theme.accent, 0.45)} 0%, ${rgba(theme.accentAlt, 0.16)} 42%, transparent 70%)`,
             }}
           />
           <div
@@ -133,9 +151,8 @@ export async function GET(request: Request) {
                   width: "100%",
                   height: "100%",
                   borderRadius: 14,
-                  border: "30px solid #f9e24c",
-                  background:
-                    "linear-gradient(180deg, #0a110c 0%, #102415 62%, #f9e24c 135%)",
+                  border: `30px solid ${theme.accent}`,
+                  background: `linear-gradient(180deg, ${theme.bg} 0%, ${theme.panel} 62%, ${theme.accent} 135%)`,
                   display: "flex",
                   position: "relative",
                   overflow: "hidden",
@@ -149,8 +166,7 @@ export async function GET(request: Request) {
                     width: 230,
                     height: 230,
                     borderRadius: "50%",
-                    background:
-                      "radial-gradient(circle, rgba(255,238,150,0.95) 0%, rgba(249,226,76,0.35) 50%, transparent 72%)",
+                    background: `radial-gradient(circle, ${rgba(theme.accent, 0.95)} 0%, ${rgba(theme.accent, 0.35)} 50%, transparent 72%)`,
                   }}
                 />
                 <div
@@ -201,7 +217,7 @@ export async function GET(request: Request) {
                     right: 16,
                     fontFamily: "'JetBrains Mono'",
                     fontSize: 16,
-                    color: "#7fff9e",
+                    color: theme.terminal,
                   }}
                 >
                   #FrameInGoa
@@ -222,7 +238,7 @@ export async function GET(request: Request) {
                   style={{
                     fontFamily: "'JetBrains Mono'",
                     fontSize: 17,
-                    color: "#f9e24c",
+                    color: theme.accent,
                     letterSpacing: 1,
                   }}
                 >
@@ -271,7 +287,7 @@ export async function GET(request: Request) {
                 style={{
                   fontFamily: "'JetBrains Mono'",
                   fontSize: 21,
-                  color: "#7fff9e",
+                  color: theme.terminal,
                 }}
               >
                 #FrameInGoa

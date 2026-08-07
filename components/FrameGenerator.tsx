@@ -9,7 +9,7 @@ import {
   Share2,
   X,
 } from "lucide-react";
-import { composeFrame, type FrameFormat } from "@/components/frame/compose";
+import { composeFrame, type FrameFormat, type FrameVariant } from "@/components/frame/compose";
 import { processPhoto } from "@/components/frame/image";
 import { buildCaption, downloadBlob, shareToX } from "@/lib/share";
 
@@ -22,6 +22,12 @@ const FORMATS: { value: FrameFormat; label: string; hint: string }[] = [
   { value: "card", label: "Builder ID Card", hint: "4:5" },
 ];
 
+const VARIANTS: { value: FrameVariant; label: string; swatch: string }[] = [
+  { value: "sunset", label: "Sunset", swatch: "#f9e24c" },
+  { value: "jade", label: "Jade", swatch: "#7fff9e" },
+  { value: "monsoon", label: "Monsoon", swatch: "#ea3380" },
+];
+
 function toPng(canvas: HTMLCanvasElement): Promise<Blob> {
   return new Promise((resolve, reject) =>
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("png")), undefined), "image/png"),
@@ -30,6 +36,7 @@ function toPng(canvas: HTMLCanvasElement): Promise<Blob> {
 
 export function FrameGenerator() {
   const [format, setFormat] = useState<FrameFormat>("pfp");
+  const [variant, setVariant] = useState<FrameVariant>("sunset");
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
   const [image, setImage] = useState<ImageBitmap | null>(null);
@@ -89,6 +96,7 @@ export function FrameGenerator() {
     async (
       bmp: ImageBitmap,
       fmt: FrameFormat,
+      v: FrameVariant,
       n: string,
       r: string,
       showProcessing: boolean,
@@ -96,7 +104,7 @@ export function FrameGenerator() {
       const id = ++seq.current;
       if (showProcessing) setStatus("processing");
       const t0 = performance.now();
-      const c = await composeFrame({ format: fmt, image: bmp, name: n, role: r });
+      const c = await composeFrame({ format: fmt, variant: v, image: bmp, name: n, role: r });
       const wait = showProcessing ? Math.max(0, 340 - (performance.now() - t0)) : 0;
       if (wait > 0) await new Promise((res) => setTimeout(res, wait));
       if (seq.current !== id) return;
@@ -121,7 +129,7 @@ export function FrameGenerator() {
         setImage(bmp);
         setFileName(file.name);
         setPhotoKey((k) => k + 1);
-        await runCompose(bmp, format, name, role, true);
+        await runCompose(bmp, format, variant, name, role, true);
       } catch {
         setStatus("error");
         setError(
@@ -131,7 +139,7 @@ export function FrameGenerator() {
         setBusy(false);
       }
     },
-    [format, name, role, runCompose],
+    [format, variant, name, role, runCompose],
   );
 
   useEffect(() => {
@@ -139,11 +147,11 @@ export function FrameGenerator() {
     if (!bmp) return;
     const id = ++seq.current;
     const t = setTimeout(async () => {
-      const c = await composeFrame({ format, image: bmp, name, role });
+      const c = await composeFrame({ format, variant, image: bmp, name, role });
       if (seq.current === id) setCanvas(c);
     }, 160);
     return () => clearTimeout(t);
-  }, [format, name, role]);
+  }, [format, variant, name, role]);
 
   const reset = useCallback(() => {
     setImage(null);
@@ -169,7 +177,7 @@ export function FrameGenerator() {
         : "All set for HH Goa 2026 — my Builder ID is locked in.";
     const caption = buildCaption(text);
     const stem = format === "pfp" ? "frameingoas-pfp" : "frameingoas-builder-id";
-    const ogPath = `/og?format=${format}&name=${encodeURIComponent(
+    const ogPath = `/og?format=${format}&variant=${variant}&name=${encodeURIComponent(
       name,
     )}&role=${encodeURIComponent(role)}`;
     const png = await toPng(canvas);
@@ -237,6 +245,36 @@ export function FrameGenerator() {
                 >
                   {f.hint}
                 </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* variant picker */}
+        <div
+          aria-label="Design variant"
+          className="mt-2 grid grid-cols-3 gap-1 rounded-lg border border-line bg-void/60 p-1"
+        >
+          {VARIANTS.map((v) => {
+            const active = variant === v.value;
+            return (
+              <button
+                key={v.value}
+                type="button"
+                aria-pressed={active}
+                onClick={() => setVariant(v.value)}
+                className={`flex items-center justify-center gap-1.5 rounded-md px-2 py-2 font-mono text-[10px] transition-colors duration-100 sm:text-[11px] ${
+                  active
+                    ? "bg-ink/10 text-ink"
+                    : "text-muted hover:text-ink"
+                }`}
+              >
+                <span
+                  aria-hidden="true"
+                  className="h-2 w-2 rounded-full"
+                  style={{ backgroundColor: v.swatch }}
+                />
+                {v.label}
               </button>
             );
           })}

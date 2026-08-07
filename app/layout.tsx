@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/og?format=pfp",
+        url: "/og?format=pfp&variant=sunset",
         width: 1200,
         height: 630,
         alt: "HH Goa 2026 FrameInGoa — frame your Goa era",
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    images: ["/og?format=pfp"],
+    images: ["/og?format=pfp&variant=sunset"],
   },
 };
 
