@@ -72,7 +72,8 @@ export function FrameGenerator() {
   const seq = useRef(0);
 
   useEffect(() => {
-    setEntries(loadGallery());
+    const t = setTimeout(() => setEntries(loadGallery()), 0);
+    return () => clearTimeout(t);
   }, []);
 
   const stageRef = useCallback(
