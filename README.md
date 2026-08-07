@@ -82,6 +82,16 @@ npm run build    # production build
 npm run lint     # eslint
 ```
 
+Set `NEXT_PUBLIC_SITE_URL` at build time to your deployed origin so the
+default `og:image` resolves to an absolute URL (falls back to localhost):
+
+```bash
+NEXT_PUBLIC_SITE_URL=https://your-domain.example npm run build
+```
+
+Favicon (`app/icon.png`) and apple-touch icon (`app/apple-icon.png`) are
+generated from `logo.png` via `sips` — re-run if the logo changes.
+
 ## Notes / tradeoffs
 
 - Photo pixels never leave the browser for the generator; the OG route only
