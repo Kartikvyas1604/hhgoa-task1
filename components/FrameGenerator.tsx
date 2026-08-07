@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { composeFrame, type FrameFormat, type FrameVariant } from "@/components/frame/compose";
 import { processPhoto } from "@/components/frame/image";
+import { CameraCapture } from "@/components/CameraCapture";
 import { buildCaption, downloadBlob, shareToX } from "@/lib/share";
 
 type Status = "idle" | "processing" | "ready" | "error";
@@ -48,6 +49,7 @@ export function FrameGenerator() {
   const [photoKey, setPhotoKey] = useState(0);
   const [drag, setDrag] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<ImageBitmap | null>(null);
@@ -187,7 +189,7 @@ export function FrameGenerator() {
       fileName: `${stem}-${Date.now()}.png`,
       ogPath,
     });
-  }, [canvas, format, name, role]);
+  }, [canvas, format, variant, name, role]);
 
   const aspect = format === "pfp" ? "aspect-square" : "aspect-[4/5]";
 
@@ -317,63 +319,73 @@ export function FrameGenerator() {
         {/* stage */}
         <div className="mt-3">
           {!image && status !== "error" ? (
-            <div
-              role="button"
-              tabIndex={0}
-              aria-label="Upload a photo"
-              onClick={() => inputRef.current?.click()}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
+            <>
+              <div
+                role="button"
+                tabIndex={0}
+                aria-label="Upload a photo"
+                onClick={() => inputRef.current?.click()}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    inputRef.current?.click();
+                  }
+                }}
+                onDragOver={(e) => {
                   e.preventDefault();
-                  inputRef.current?.click();
-                }
-              }}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDrag(true);
-              }}
-              onDragLeave={() => setDrag(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setDrag(false);
-                const file = e.dataTransfer.files?.[0];
-                if (file) onPickFile(file);
-              }}
-              className={`group relative flex min-h-[220px] cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border border-dashed px-6 py-10 text-center transition-colors duration-150 sm:min-h-[260px] ${
-                drag
-                  ? "border-sunset bg-sunset/10"
-                  : "border-muted/30 bg-void/40 hover:border-sunset/60"
-              }`}
-            >
-              <input
-                ref={inputRef}
-                type="file"
-                accept={ACCEPT}
-                className="sr-only"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
+                  setDrag(true);
+                }}
+                onDragLeave={() => setDrag(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDrag(false);
+                  const file = e.dataTransfer.files?.[0];
                   if (file) onPickFile(file);
                 }}
-              />
-              <span className="flex h-12 w-12 items-center justify-center rounded-lg border border-line bg-panel transition-transform duration-150 group-hover:-translate-y-0.5">
-                <ImagePlus
-                  aria-hidden="true"
-                  className="h-6 w-6 text-sunset"
+                className={`group relative flex min-h-[220px] cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border border-dashed px-6 py-10 text-center transition-colors duration-150 sm:min-h-[260px] ${
+                  drag
+                    ? "border-sunset bg-sunset/10"
+                    : "border-muted/30 bg-void/40 hover:border-sunset/60"
+                }`}
+              >
+                <input
+                  ref={inputRef}
+                  type="file"
+                  accept={ACCEPT}
+                  className="sr-only"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) onPickFile(file);
+                  }}
                 />
-              </span>
-              <div>
-                <p className="font-mono text-sm font-bold tracking-wide text-ink">
-                  Drop image or tap to browse
-                </p>
-                <p className="mt-1 flex items-center justify-center gap-1.5 font-mono text-[11px] text-muted">
-                  <Camera aria-hidden="true" className="h-3.5 w-3.5" />
-                  camera roll · JPG / PNG / HEIC
+                <span className="flex h-12 w-12 items-center justify-center rounded-lg border border-line bg-panel transition-transform duration-150 group-hover:-translate-y-0.5">
+                  <ImagePlus
+                    aria-hidden="true"
+                    className="h-6 w-6 text-sunset"
+                  />
+                </span>
+                <div>
+                  <p className="font-mono text-sm font-bold tracking-wide text-ink">
+                    Drop image or tap to browse
+                  </p>
+                  <p className="mt-1 flex items-center justify-center gap-1.5 font-mono text-[11px] text-muted">
+                    <Camera aria-hidden="true" className="h-3.5 w-3.5" />
+                    camera roll · JPG / PNG / HEIC
+                  </p>
+                </div>
+                <p className="absolute bottom-3 font-mono text-[10px] tracking-wider text-muted/50">
+                  ▸ HEIC converts on-device · nothing leaves your browser
                 </p>
               </div>
-              <p className="absolute bottom-3 font-mono text-[10px] tracking-wider text-muted/50">
-                ▸ HEIC converts on-device · nothing leaves your browser
-              </p>
-            </div>
+              <button
+                type="button"
+                onClick={() => setCameraOpen(true)}
+                className="mx-auto mt-2 flex items-center gap-1.5 rounded-sm px-2.5 py-1.5 font-mono text-[10px] text-muted transition-colors duration-150 hover:text-ink"
+              >
+                <Camera aria-hidden="true" className="h-3.5 w-3.5" />
+                or snap one with your camera
+              </button>
+            </>
           ) : status === "error" ? (
             <div
               role="alert"
@@ -454,6 +466,16 @@ export function FrameGenerator() {
           )}
         </div>
       </div>
+
+      {cameraOpen && (
+        <CameraCapture
+          onCapture={(file) => {
+            setCameraOpen(false);
+            onPickFile(file);
+          }}
+          onClose={() => setCameraOpen(false)}
+        />
+      )}
     </div>
   );
 }
