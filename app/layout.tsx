@@ -23,7 +23,11 @@ const newsreader = Newsreader({
   display: "swap",
 });
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: "FrameInGoa — HH Goa 2026 Frame & ID Card Generator",
     template: "%s · FrameInGoa",
@@ -45,9 +49,18 @@ export const metadata: Metadata = {
       "Upload a photo → branded HH Goa 2026 PFP frame or Builder ID card in seconds. Download or share to X with #FrameInGoa.",
     siteName: "FrameInGoa",
     type: "website",
+    images: [
+      {
+        url: "/og?format=pfp",
+        width: 1200,
+        height: 630,
+        alt: "HH Goa 2026 FrameInGoa — frame your Goa era",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
+    images: ["/og?format=pfp"],
   },
 };
 
