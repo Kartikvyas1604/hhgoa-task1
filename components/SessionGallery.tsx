@@ -23,7 +23,7 @@ export function SessionGallery({
   if (entries.length === 0) return null;
 
   return (
-    <div className="mt-4">
+    <div className="mt-2 px-3 pb-4 sm:px-4">
       <p className="mb-2 flex items-center gap-1.5 font-mono text-[10px] tracking-wider text-muted">
         <span aria-hidden="true" className="text-sunset">
           ●
