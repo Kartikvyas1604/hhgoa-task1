@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Camera, FlipHorizontal, X } from "lucide-react";
 
 interface CameraCaptureProps {
@@ -49,8 +49,7 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
     };
   }, [facing]);
 
-  const onShoot = useRef(() => {});
-  onShoot.current = async () => {
+  const onShoot = useCallback(async () => {
     const video = videoRef.current;
     if (!video || !video.videoWidth || busy) return;
     setBusy(true);
@@ -73,7 +72,7 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
     } finally {
       setBusy(false);
     }
-  };
+  }, [busy, onCapture]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -148,7 +147,7 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
           </button>
           <button
             type="button"
-            onClick={() => onShoot.current()}
+            onClick={() => onShoot()}
             disabled={busy || !!error}
             className="flex min-h-12 items-center justify-center gap-2 rounded-md bg-sunset px-6 font-mono text-xs font-bold tracking-wide text-void transition-colors duration-100 hover:bg-[#ffe97a] active:translate-y-px disabled:opacity-50"
           >
