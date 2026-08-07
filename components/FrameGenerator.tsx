@@ -204,7 +204,6 @@ export function FrameGenerator() {
       <div className="p-3 sm:p-4">
         {/* format toggle */}
         <div
-          role="tablist"
           aria-label="Frame format"
           className="grid grid-cols-2 gap-1 rounded-lg border border-line bg-void/60 p-1"
         >
@@ -214,8 +213,7 @@ export function FrameGenerator() {
               <button
                 key={f.value}
                 type="button"
-                role="tab"
-                aria-selected={active}
+                aria-pressed={active}
                 onClick={() => setFormat(f.value)}
                 className={`flex items-center justify-between gap-2 rounded-md px-3 py-2.5 transition-colors duration-100 ${
                   active
@@ -373,7 +371,10 @@ export function FrameGenerator() {
                         className="absolute inset-0 h-full w-full scale-105 object-cover opacity-50 blur-[2px]"
                       />
                     )}
-                    <p className="relative font-mono text-xs text-ink">
+                    <p
+                      role="status"
+                      className="relative font-mono text-xs text-ink"
+                    >
                       $ composing_{format === "pfp" ? "pfp" : "builder_id"} ▍
                     </p>
                     <p className="relative font-mono text-[10px] text-muted">

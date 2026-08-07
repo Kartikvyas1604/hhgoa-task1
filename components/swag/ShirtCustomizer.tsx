@@ -310,7 +310,7 @@ export function ShirtCustomizer() {
           {/* baking cursor */}
           {baking && !lowPower && (
             <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-void/40 backdrop-blur-[1px]">
-              <p className="font-mono text-xs text-ink">
+              <p role="status" className="font-mono text-xs text-ink">
                 &gt; baking texture <span className="cursor-blink">▍</span>
               </p>
             </div>
@@ -470,6 +470,7 @@ export function ShirtCustomizer() {
             </p>
             <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
               <label className="block">
+                <span className="sr-only">stamp name</span>
                 <input
                   type="text"
                   value={name}
@@ -481,6 +482,7 @@ export function ShirtCustomizer() {
                 />
               </label>
               <label className="block">
+                <span className="sr-only">stamp team</span>
                 <input
                   type="text"
                   value={team}
@@ -519,6 +521,7 @@ export function ShirtCustomizer() {
                 ref={photoInputRef}
                 type="file"
                 accept="image/jpeg,image/png,image/heic,image/heif,.jpg,.jpeg,.png,.heic"
+                aria-label="Upload a photo for the badge"
                 className="sr-only"
                 onChange={(e) => {
                   const f = e.target.files?.[0];
