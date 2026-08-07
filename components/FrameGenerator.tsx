@@ -5,14 +5,28 @@ import {
   Camera,
   Download,
   ImagePlus,
+  Link2,
   RefreshCw,
   Share2,
   X,
 } from "lucide-react";
 import { composeFrame, type FrameFormat, type FrameVariant } from "@/components/frame/compose";
-import { processPhoto } from "@/components/frame/image";
+import {
+  bitmapFromDataUrl,
+  bitmapToDataUrl,
+  canvasThumbDataUrl,
+  processPhoto,
+} from "@/components/frame/image";
 import { CameraCapture } from "@/components/CameraCapture";
-import { buildCaption, downloadBlob, shareToX } from "@/lib/share";
+import { SessionGallery } from "@/components/SessionGallery";
+import { loadGallery, pushGallery, removeGalleryEntry, type GalleryEntry } from "@/lib/gallery";
+import {
+  buildCaption,
+  buildFrameLink,
+  downloadBlob,
+  shareToX,
+  type FrameLinkParams,
+} from "@/lib/share";
 
 type Status = "idle" | "processing" | "ready" | "error";
 
@@ -50,10 +64,16 @@ export function FrameGenerator() {
   const [drag, setDrag] = useState(false);
   const [busy, setBusy] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [entries, setEntries] = useState<GalleryEntry[]>([]);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<ImageBitmap | null>(null);
   const seq = useRef(0);
+
+  useEffect(() => {
+    setEntries(loadGallery());
+  }, []);
 
   const stageRef = useCallback(
     (node: HTMLCanvasElement | null) => {
@@ -102,16 +122,17 @@ export function FrameGenerator() {
       n: string,
       r: string,
       showProcessing: boolean,
-    ) => {
+    ): Promise<HTMLCanvasElement> => {
       const id = ++seq.current;
       if (showProcessing) setStatus("processing");
       const t0 = performance.now();
       const c = await composeFrame({ format: fmt, variant: v, image: bmp, name: n, role: r });
       const wait = showProcessing ? Math.max(0, 340 - (performance.now() - t0)) : 0;
       if (wait > 0) await new Promise((res) => setTimeout(res, wait));
-      if (seq.current !== id) return;
+      if (seq.current !== id) return c;
       setCanvas(c);
       setStatus("ready");
+      return c;
     },
     [],
   );
@@ -131,7 +152,19 @@ export function FrameGenerator() {
         setImage(bmp);
         setFileName(file.name);
         setPhotoKey((k) => k + 1);
-        await runCompose(bmp, format, variant, name, role, true);
+        const c = await runCompose(bmp, format, variant, name, role, true);
+        pushGallery({
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          format,
+          variant,
+          name,
+          role,
+          fileName: file.name,
+          createdAt: Date.now(),
+          photo: bitmapToDataUrl(bmp, 1024, 0.8),
+          thumb: canvasThumbDataUrl(c),
+        });
+        setEntries(loadGallery());
       } catch {
         setStatus("error");
         setError(
@@ -190,6 +223,112 @@ export function FrameGenerator() {
       ogPath,
     });
   }, [canvas, format, variant, name, role]);
+
+  const composeFromEntry = useCallback(async (entry: GalleryEntry) => {
+    const bmp = await bitmapFromDataUrl(entry.photo);
+    return composeFrame({
+      format: entry.format,
+      variant: entry.variant,
+      image: bmp,
+      name: entry.name,
+      role: entry.role,
+    });
+  }, []);
+
+  const onGalleryDownload = useCallback(
+    async (entry: GalleryEntry) => {
+      const c = await composeFromEntry(entry);
+      const stem =
+        entry.format === "pfp" ? "frameingoas-pfp" : "frameingoas-builder-id";
+      const png = await toPng(c);
+      downloadBlob(png, `${stem}-${entry.createdAt}.png`);
+    },
+    [composeFromEntry],
+  );
+
+  const onGalleryShare = useCallback(
+    async (entry: GalleryEntry) => {
+      const text =
+        entry.format === "pfp"
+          ? "Sun's up. My HH Goa 2026 PFP frame is ready."
+          : "All set for HH Goa 2026 — my Builder ID is locked in.";
+      const caption = buildCaption(text);
+      const stem =
+        entry.format === "pfp" ? "frameingoas-pfp" : "frameingoas-builder-id";
+      const ogPath = `/og?format=${entry.format}&variant=${entry.variant}&name=${encodeURIComponent(
+        entry.name,
+      )}&role=${encodeURIComponent(entry.role)}`;
+      const c = await composeFromEntry(entry);
+      const png = await toPng(c);
+      await shareToX({
+        caption,
+        file: png,
+        fileName: `${stem}-${entry.createdAt}.png`,
+        ogPath,
+      });
+    },
+    [composeFromEntry],
+  );
+
+  const onCopyLink = useCallback(
+    async (id: string, params: FrameLinkParams) => {
+      const link = buildFrameLink(params);
+      try {
+        await navigator.clipboard.writeText(link);
+      } catch {
+        window.prompt("Copy your frame link:", link);
+      }
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    },
+    [],
+  );
+
+  const onGalleryCopyLink = useCallback(
+    (entry: GalleryEntry) =>
+      onCopyLink(entry.id, {
+        format: entry.format,
+        variant: entry.variant,
+        name: entry.name,
+        role: entry.role,
+        img: entry.photo,
+      }),
+    [onCopyLink],
+  );
+
+  const onGalleryReuse = useCallback(
+    async (entry: GalleryEntry) => {
+      setBusy(true);
+      setError(null);
+      try {
+        const bmp = await bitmapFromDataUrl(entry.photo);
+        setImage(bmp);
+        setFileName(entry.fileName);
+        setFormat(entry.format);
+        setVariant(entry.variant);
+        setName(entry.name);
+        setRole(entry.role);
+        setPhotoKey((k) => k + 1);
+        await runCompose(bmp, entry.format, entry.variant, entry.name, entry.role, true);
+      } catch {
+        setStatus("error");
+        setError("Couldn't reload that frame — try a fresh photo.");
+      } finally {
+        setBusy(false);
+      }
+    },
+    [runCompose],
+  );
+
+  const onGalleryDelete = useCallback((id: string) => {
+    setEntries(removeGalleryEntry(id));
+  }, []);
+
+  const onCopyFrameLink = useCallback(() => {
+    const bmp = imageRef.current;
+    const img = bmp ? bitmapToDataUrl(bmp, 1024, 0.8) : undefined;
+    onCopyLink("__current__", { format, variant, name, role, img });
+  }, [format, variant, name, role, onCopyLink]);
 
   const aspect = format === "pfp" ? "aspect-square" : "aspect-[4/5]";
 
@@ -441,24 +580,37 @@ export function FrameGenerator() {
               </div>
 
               {status === "ready" && canvas && (
-                <div className="grid w-full max-w-[300px] grid-cols-1 gap-2 sm:grid-cols-2">
+                <div className="flex w-full max-w-[300px] flex-col gap-2">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <button
+                      type="button"
+                      onClick={onDownload}
+                      disabled={busy}
+                      className="flex h-12 items-center justify-center gap-2 rounded-md border border-line bg-void/60 px-4 font-mono text-xs font-bold tracking-wide text-ink transition-colors duration-100 hover:border-ink/40 active:translate-y-px disabled:opacity-50"
+                    >
+                      <Download aria-hidden="true" className="h-4 w-4" />
+                      Download PNG
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onShare}
+                      disabled={busy}
+                      className="share-glow cta-scan flex h-12 items-center justify-center gap-2 rounded-md bg-terminal px-4 font-mono text-xs font-bold tracking-wide text-void transition-colors duration-100 hover:bg-[#9cffba] active:translate-y-px disabled:opacity-50"
+                    >
+                      <Share2 aria-hidden="true" className="h-4 w-4" />
+                      Share to X
+                    </button>
+                  </div>
                   <button
                     type="button"
-                    onClick={onDownload}
+                    onClick={onCopyFrameLink}
                     disabled={busy}
-                    className="flex h-12 items-center justify-center gap-2 rounded-md border border-line bg-void/60 px-4 font-mono text-xs font-bold tracking-wide text-ink transition-colors duration-100 hover:border-ink/40 active:translate-y-px disabled:opacity-50"
+                    className="flex h-10 items-center justify-center gap-2 rounded-md border border-dashed border-muted/40 px-4 font-mono text-[11px] text-muted transition-colors duration-100 hover:border-terminal/60 hover:text-ink disabled:opacity-50"
                   >
-                    <Download aria-hidden="true" className="h-4 w-4" />
-                    Download PNG
-                  </button>
-                  <button
-                    type="button"
-                    onClick={onShare}
-                    disabled={busy}
-                    className="share-glow cta-scan flex h-12 items-center justify-center gap-2 rounded-md bg-terminal px-4 font-mono text-xs font-bold tracking-wide text-void transition-colors duration-100 hover:bg-[#9cffba] active:translate-y-px disabled:opacity-50"
-                  >
-                    <Share2 aria-hidden="true" className="h-4 w-4" />
-                    Share to X
+                    <Link2 aria-hidden="true" className="h-3.5 w-3.5" />
+                    {copiedId === "__current__"
+                      ? "copied — share it anywhere"
+                      : "copy hosted link"}
                   </button>
                 </div>
               )}
@@ -466,6 +618,15 @@ export function FrameGenerator() {
           )}
         </div>
       </div>
+
+      <SessionGallery
+        entries={entries}
+        onDownload={onGalleryDownload}
+        onShare={onGalleryShare}
+        onCopyLink={onGalleryCopyLink}
+        onReuse={onGalleryReuse}
+        onDelete={onGalleryDelete}
+      />
 
       {cameraOpen && (
         <CameraCapture

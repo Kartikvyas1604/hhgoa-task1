@@ -9,6 +9,25 @@ export function buildShareUrl(ogPath: string): string {
   return `${base}${ogPath}`;
 }
 
+export interface FrameLinkParams {
+  format: string;
+  variant: string;
+  name?: string;
+  role?: string;
+  img?: string;
+}
+
+export function buildFrameLink(p: FrameLinkParams): string {
+  const base = window.location.origin;
+  const sp = new URLSearchParams();
+  sp.set("format", p.format);
+  sp.set("variant", p.variant);
+  if (p.name?.trim()) sp.set("name", p.name.trim());
+  if (p.role?.trim()) sp.set("role", p.role.trim());
+  if (p.img && p.img.length <= 60_000) sp.set("img", p.img);
+  return `${base}/share?${sp.toString()}`;
+}
+
 export async function shareToX(opts: {
   caption: string;
   file?: Blob | null;
