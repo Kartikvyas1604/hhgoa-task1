@@ -23,9 +23,6 @@ export function Footer() {
             <Link href="/" className="transition-colors duration-150 hover:text-ink">
               /frame-generator
             </Link>
-            <Link href="/swag" className="transition-colors duration-150 hover:text-ink">
-              /swag-tee
-            </Link>
             <span className="text-muted/70">#FrameInGoa</span>
           </nav>
         </div>

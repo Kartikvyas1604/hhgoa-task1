@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Shirt, Timer, Upload, WandSparkles } from "lucide-react";
+import { Timer, Upload, WandSparkles } from "lucide-react";
 import { HomeHero } from "@/components/HomeHero";
 import { PalmTrees } from "@/components/PalmTrees";
 
@@ -54,35 +53,6 @@ export default function Home() {
             </div>
           ))}
         </div>
-      </section>
-
-      {/* swag callout */}
-      <section className="mx-auto mt-16 w-full max-w-6xl px-4 sm:px-6">
-        <Link
-          href="/swag"
-          className="group relative block overflow-hidden rounded-xl border border-line bg-panel p-8 sm:p-12"
-        >
-          <div className="absolute -right-10 -top-10 h-56 w-56 rounded-full bg-magenta/10 blur-3xl transition-colors duration-300 group-hover:bg-magenta/20" />
-          <div className="relative flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-            <div className="max-w-xl">
-              <p className="font-mono text-[11px] tracking-[0.2em] text-magenta">
-                SWAG LAB
-              </p>
-              <h2 className="mt-3 font-display text-3xl font-bold tracking-tight sm:text-4xl">
-                Spray-paint your own HH Goa tee.
-              </h2>
-              <p className="mt-3 max-w-lg text-[15px] leading-relaxed text-muted">
-                Pick a Goa pattern, spray a colour, stamp your name — then
-                capture a flat shot and share it. No cart, no checkout. It&apos;s
-                a social artifact, not merch.
-              </p>
-            </div>
-            <span className="inline-flex h-12 w-fit items-center gap-2 rounded-md border border-line bg-void/60 px-5 font-mono text-xs font-bold tracking-wide text-ink transition-all duration-150 group-hover:border-magenta/50 group-hover:text-magenta">
-              <Shirt aria-hidden="true" className="h-4 w-4" />
-              Open the customizer
-            </span>
-          </div>
-        </Link>
       </section>
 
       {/* footer margin trees */}

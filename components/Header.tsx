@@ -3,10 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const links = [
-  { href: "/", label: "Frame Generator" },
-  { href: "/swag", label: "Swag / Tee" },
-];
+const links = [{ href: "/", label: "Frame Generator" }];
 
 export function Header() {
   const pathname = usePathname();
