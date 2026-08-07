@@ -17,7 +17,7 @@ export const BUILDER_TITLES = [
   "SHIPPER OF SHIPPERS",
 ];
 
-const COLORS = {
+export const PALETTE = {
   void: "#0b0e0c",
   panel: "#141815",
   sunset: "#ff6b35",
@@ -30,7 +30,7 @@ const COLORS = {
 
 let familyCache: { display: string; mono: string } | null = null;
 
-function fontFamilies() {
+export function fontFamilies() {
   if (familyCache) return familyCache;
   const probe = (cls: string, fallback: string) => {
     const el = document.createElement("span");
@@ -71,7 +71,7 @@ function roleFor(role?: string): string {
   return r ? r.toUpperCase() : "FULL-STACK FUTURIST";
 }
 
-function roundedRectPath(
+export function roundedRectPath(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
@@ -88,7 +88,7 @@ function roundedRectPath(
   ctx.closePath();
 }
 
-function drawCover(
+export function drawCover(
   ctx: CanvasRenderingContext2D,
   img: ImageBitmap,
   x: number,
@@ -106,7 +106,7 @@ function drawCover(
   ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
 }
 
-function drawSpaced(
+export function drawSpaced(
   ctx: CanvasRenderingContext2D,
   text: string,
   x: number,
@@ -128,7 +128,7 @@ function drawSpaced(
   });
 }
 
-function fitFont(
+export function fitFont(
   ctx: CanvasRenderingContext2D,
   text: string,
   maxWidth: number,
@@ -202,7 +202,7 @@ function drawPfp(ctx: CanvasRenderingContext2D, W: number, img: ImageBitmap) {
   ctx.fillRect(0, 0, W, W);
 
   ctx.lineWidth = BORDER;
-  ctx.strokeStyle = COLORS.sunset;
+  ctx.strokeStyle = PALETTE.sunset;
   ctx.strokeRect(0, 0, W, W);
 
   ctx.lineWidth = 2;
@@ -212,7 +212,7 @@ function drawPfp(ctx: CanvasRenderingContext2D, W: number, img: ImageBitmap) {
   cornerTicks(ctx, W, 30, 30);
 
   ctx.textBaseline = "alphabetic";
-  ctx.fillStyle = COLORS.ink;
+  ctx.fillStyle = PALETTE.ink;
   ctx.font = `800 ${BORDER * 0.78}px ${fams.mono}`;
   drawSpaced(ctx, "HH GOA 2026", 72, 106, 3);
 
@@ -224,11 +224,11 @@ function drawPfp(ctx: CanvasRenderingContext2D, W: number, img: ImageBitmap) {
   ctx.font = `500 ${BORDER * 0.44}px ${fams.mono}`;
   drawSpaced(ctx, "GOA, INDIA · 28–31 OCT", W - 72, 106, 2, "right");
 
-  ctx.fillStyle = COLORS.ink;
+  ctx.fillStyle = PALETTE.ink;
   ctx.font = `800 ${BORDER * 0.66}px ${fams.mono}`;
   drawSpaced(ctx, "FRAME_IN/GOA", 72, W - 78, 2);
 
-  ctx.fillStyle = COLORS.terminal;
+  ctx.fillStyle = PALETTE.terminal;
   ctx.font = `600 ${BORDER * 0.48}px ${fams.mono}`;
   drawSpaced(ctx, "#FrameInGoa", W - 72, W - 78, 1, "right");
 
@@ -248,7 +248,7 @@ function drawCard(ctx: CanvasRenderingContext2D, W: number, H: number, img: Imag
   ctx.save();
   roundedRectPath(ctx, 0, 0, W, H, 48);
   ctx.clip();
-  ctx.fillStyle = COLORS.panel;
+  ctx.fillStyle = PALETTE.panel;
   ctx.fillRect(0, 0, W, H);
 
   ctx.save();
@@ -262,7 +262,7 @@ function drawCard(ctx: CanvasRenderingContext2D, W: number, H: number, img: Imag
   ctx.fillRect(I, bandY, W - I * 2, bandH);
   ctx.restore();
 
-  ctx.strokeStyle = COLORS.sunset;
+  ctx.strokeStyle = PALETTE.sunset;
   ctx.lineWidth = 6;
   ctx.beginPath();
   ctx.moveTo(I + 10, bandY + bandH + 14);
@@ -279,32 +279,32 @@ function drawCard(ctx: CanvasRenderingContext2D, W: number, H: number, img: Imag
   const contentY = bandY + bandH + 96;
 
   ctx.textBaseline = "alphabetic";
-  ctx.fillStyle = COLORS.sunset;
+  ctx.fillStyle = PALETTE.sunset;
   ctx.font = `700 26px ${fams.mono}`;
   drawSpaced(ctx, "HH GOA 2026", I + 2, contentY, 2);
-  ctx.fillStyle = COLORS.ink;
+  ctx.fillStyle = PALETTE.ink;
   ctx.textAlign = "right";
   ctx.font = `500 26px ${fams.mono}`;
   drawSpaced(ctx, "BUILDER ID", W - I - 2, contentY, 2, "right");
 
   ctx.textAlign = "left";
-  ctx.fillStyle = COLORS.ink;
+  ctx.fillStyle = PALETTE.ink;
   const nameSize = fitFont(ctx, title, W - I * 2 - 8, 92, fams.display, 800);
   ctx.font = `800 ${nameSize}px ${fams.display}`;
   drawSpaced(ctx, title, I, contentY + 118, 0);
 
-  ctx.fillStyle = COLORS.muted;
+  ctx.fillStyle = PALETTE.muted;
   ctx.font = `600 30px ${fams.mono}`;
-  ctx.fillStyle = COLORS.sunset;
+  ctx.fillStyle = PALETTE.sunset;
   ctx.font = `700 30px ${fams.mono}`;
   ctx.fillText(">_", I, contentY + 176);
-  ctx.fillStyle = COLORS.muted;
+  ctx.fillStyle = PALETTE.muted;
   ctx.font = `500 30px ${fams.mono}`;
   const roleFitted = fitFont(ctx, roleText, W - I * 2 - 120, 30, fams.mono, 500, 20);
   ctx.font = `500 ${roleFitted}px ${fams.mono}`;
   ctx.fillText(roleText, I + 74, contentY + 176);
 
-  ctx.strokeStyle = COLORS.hairline;
+  ctx.strokeStyle = PALETTE.hairline;
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(I, contentY + 236);
@@ -321,13 +321,13 @@ function drawCard(ctx: CanvasRenderingContext2D, W: number, H: number, img: Imag
     const y = contentY + 316 + i * 62;
     ctx.fillStyle = "rgba(244,239,230,0.5)";
     drawSpaced(ctx, label, I, y, 2);
-    ctx.fillStyle = COLORS.ink;
+    ctx.fillStyle = PALETTE.ink;
     ctx.textAlign = "right";
     drawSpaced(ctx, value, W - I, y, 1, "right");
     ctx.textAlign = "left";
   });
 
-  ctx.strokeStyle = COLORS.hairline;
+  ctx.strokeStyle = PALETTE.hairline;
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(I, H - I - 96);
@@ -335,7 +335,7 @@ function drawCard(ctx: CanvasRenderingContext2D, W: number, H: number, img: Imag
   ctx.stroke();
 
   ctx.font = `700 28px ${fams.mono}`;
-  ctx.fillStyle = COLORS.terminal;
+  ctx.fillStyle = PALETTE.terminal;
   drawSpaced(ctx, "#FrameInGoa", I, H - I - 44, 1);
   ctx.textAlign = "right";
   ctx.fillStyle = "rgba(244,239,230,0.6)";
