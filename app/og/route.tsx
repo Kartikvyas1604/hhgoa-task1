@@ -79,6 +79,9 @@ export async function GET(request: Request) {
     const theme = VARIANT_THEMES[variant ?? "sunset"] ?? VARIANT_THEMES.sunset;
     const name = searchParams.get("name");
     const role = searchParams.get("role");
+    const img = searchParams.get("img");
+    const embedImg =
+      img && img.startsWith("data:image/") && img.length < 120_000 ? img : null;
     const title = titleFor(name);
     const roleText = role?.trim() ? role.trim().toUpperCase() : "FULL-STACK FUTURIST";
 
@@ -158,45 +161,71 @@ export async function GET(request: Request) {
                   overflow: "hidden",
                 }}
               >
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: -70,
-                    left: 6,
-                    width: 230,
-                    height: 230,
-                    borderRadius: "50%",
-                    background: `radial-gradient(circle, ${rgba(theme.accent, 0.95)} 0%, ${rgba(theme.accent, 0.35)} 50%, transparent 72%)`,
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: 4,
-                    right: 44,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 112,
-                      height: 112,
-                      borderRadius: "50%",
-                      background: "rgba(238,241,231,0.9)",
-                    }}
-                  />
-                  <div
-                    style={{
-                      width: 200,
-                      height: 96,
-                      borderTopLeftRadius: 90,
-                      borderTopRightRadius: 90,
-                      background: "rgba(238,241,231,0.9)",
-                    }}
-                  />
-                </div>
+                {embedImg ? (
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element -- data URL from the share link */}
+                    <img
+                      src={embedImg}
+                      alt=""
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        background: `linear-gradient(180deg, ${rgba(theme.bg, 0.55)} 0%, transparent 34%, transparent 62%, ${rgba(theme.bg, 0.72)} 100%)`,
+                      }}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: -70,
+                        left: 6,
+                        width: 230,
+                        height: 230,
+                        borderRadius: "50%",
+                        background: `radial-gradient(circle, ${rgba(theme.accent, 0.95)} 0%, ${rgba(theme.accent, 0.35)} 50%, transparent 72%)`,
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: 4,
+                        right: 44,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 112,
+                          height: 112,
+                          borderRadius: "50%",
+                          background: "rgba(238,241,231,0.9)",
+                        }}
+                      />
+                      <div
+                        style={{
+                          width: 200,
+                          height: 96,
+                          borderTopLeftRadius: 90,
+                          borderTopRightRadius: 90,
+                          background: "rgba(238,241,231,0.9)",
+                        }}
+                      />
+                    </div>
+                  </>
+                )}
                 <div
                   style={{
                     position: "absolute",
