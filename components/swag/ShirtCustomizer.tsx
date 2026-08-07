@@ -125,9 +125,9 @@ export function ShirtCustomizer() {
 
   useEffect(() => {
     const id = ++bakeSeq.current;
-    setBaking(true);
     const t = setTimeout(async () => {
       try {
+        setBaking(true);
         await ensureFonts();
         const front = await bakeTeeTexture({
           color,
@@ -165,18 +165,18 @@ export function ShirtCustomizer() {
   }, [color, patternId, name, team, photo, textSide]);
 
   useEffect(() => {
-    if (!lowPower) {
-      setFlatUrl(null);
-      return;
-    }
-    const img = tex.front?.image as CanvasImageSource | undefined;
-    if (!img) return;
-    const c = document.createElement("canvas");
-    c.width = c.height = 560;
-    const ctx = c.getContext("2d");
-    if (!ctx) return;
-    drawFlatTee(ctx, 560, img, color);
-    setFlatUrl(c.toDataURL("image/png"));
+    if (!lowPower) return;
+    const t = setTimeout(() => {
+      const img = tex.front?.image as CanvasImageSource | undefined;
+      if (!img) return;
+      const c = document.createElement("canvas");
+      c.width = c.height = 560;
+      const ctx = c.getContext("2d");
+      if (!ctx) return;
+      drawFlatTee(ctx, 560, img, color);
+      setFlatUrl(c.toDataURL("image/png"));
+    }, 0);
+    return () => clearTimeout(t);
   }, [lowPower, tex, color]);
 
   const onSceneCreated = useCallback((state: RootState) => {
@@ -256,6 +256,7 @@ export function ShirtCustomizer() {
           {lowPower ? (
             <div className="flex h-full w-full flex-col items-center justify-center gap-3">
               {flatUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element -- canvas data URL, not optimisable
                 <img
                   src={flatUrl}
                   alt="Flat preview of your shirt design"
@@ -330,6 +331,7 @@ export function ShirtCustomizer() {
           {/* captured panel */}
           {capturedUrl && (
             <div className="snap-in absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-panel/95 p-4 backdrop-blur-sm">
+              {/* eslint-disable-next-line @next/next/no-img-element -- canvas data URL, not optimisable */}
               <img
                 src={capturedUrl}
                 alt="Captured flat shot of your customized tee"

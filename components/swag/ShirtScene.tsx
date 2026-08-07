@@ -64,13 +64,6 @@ function TeeModel({
     [texBack],
   );
 
-  useEffect(() => {
-    frontMat.needsUpdate = true;
-  }, [frontMat]);
-  useEffect(() => {
-    backMat.needsUpdate = true;
-  }, [backMat]);
-
   useEffect(
     () => () => {
       bodyGeo.dispose();

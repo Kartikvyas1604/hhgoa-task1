@@ -365,6 +365,7 @@ export function FrameGenerator() {
                 ) : (
                   <div className="flex h-full w-full flex-col items-center justify-center gap-3">
                     {thumbUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element -- canvas data URL, not optimisable
                       <img
                         src={thumbUrl}
                         alt=""
