@@ -24,7 +24,7 @@ export function buildFrameLink(p: FrameLinkParams): string {
   sp.set("variant", p.variant);
   if (p.name?.trim()) sp.set("name", p.name.trim());
   if (p.role?.trim()) sp.set("role", p.role.trim());
-  if (p.img && p.img.length <= 60_000) sp.set("img", p.img);
+  if (p.img && p.img.length <= 11_000) sp.set("img", p.img);
   return `${base}/share?${sp.toString()}`;
 }
 

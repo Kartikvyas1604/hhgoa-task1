@@ -31,7 +31,7 @@ async function readParams(searchParams: {
     variant: clean(searchParams.variant, 16) || "sunset",
     name: clean(searchParams.name, 26),
     role: clean(searchParams.role, 32),
-    img: clean(searchParams.img, 120_000),
+    img: clean(searchParams.img, 12_000),
   };
 }
 

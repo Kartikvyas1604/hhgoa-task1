@@ -10,6 +10,7 @@ export interface GalleryEntry {
   createdAt: number;
   photo: string;
   thumb: string;
+  linkImg: string;
 }
 
 const KEY = "frameingoas:gallery:v1";

@@ -81,7 +81,7 @@ export async function GET(request: Request) {
     const role = searchParams.get("role");
     const img = searchParams.get("img");
     const embedImg =
-      img && img.startsWith("data:image/") && img.length < 120_000 ? img : null;
+      img && img.startsWith("data:image/") && img.length < 12_000 ? img : null;
     const title = titleFor(name);
     const roleText = role?.trim() ? role.trim().toUpperCase() : "FULL-STACK FUTURIST";
 

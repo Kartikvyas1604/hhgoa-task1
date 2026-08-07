@@ -164,6 +164,7 @@ export function FrameGenerator() {
           createdAt: Date.now(),
           photo: bitmapToDataUrl(bmp, 1024, 0.8),
           thumb: canvasThumbDataUrl(c),
+          linkImg: bitmapToDataUrl(bmp, 128, 0.72),
         });
         setEntries(loadGallery());
       } catch {
@@ -292,7 +293,7 @@ export function FrameGenerator() {
         variant: entry.variant,
         name: entry.name,
         role: entry.role,
-        img: entry.photo,
+        img: entry.linkImg,
       }),
     [onCopyLink],
   );
@@ -327,7 +328,7 @@ export function FrameGenerator() {
 
   const onCopyFrameLink = useCallback(() => {
     const bmp = imageRef.current;
-    const img = bmp ? bitmapToDataUrl(bmp, 1024, 0.8) : undefined;
+    const img = bmp ? bitmapToDataUrl(bmp, 128, 0.72) : undefined;
     onCopyLink("__current__", { format, variant, name, role, img });
   }, [format, variant, name, role, onCopyLink]);
 
