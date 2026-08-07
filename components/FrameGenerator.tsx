@@ -1,0 +1,413 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Camera,
+  Download,
+  ImagePlus,
+  RefreshCw,
+  Share2,
+  X,
+} from "lucide-react";
+import { composeFrame, type FrameFormat } from "@/components/frame/compose";
+import { processPhoto } from "@/components/frame/image";
+import { buildCaption, downloadBlob, shareToX } from "@/lib/share";
+
+type Status = "idle" | "processing" | "ready" | "error";
+
+const ACCEPT = "image/jpeg,image/png,image/heic,image/heif,.jpg,.jpeg,.png,.heic";
+
+const FORMATS: { value: FrameFormat; label: string; hint: string }[] = [
+  { value: "pfp", label: "PFP Frame", hint: "1:1" },
+  { value: "card", label: "Builder ID Card", hint: "4:5" },
+];
+
+function toPng(canvas: HTMLCanvasElement): Promise<Blob> {
+  return new Promise((resolve, reject) =>
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("png")), undefined), "image/png"),
+  );
+}
+
+export function FrameGenerator() {
+  const [format, setFormat] = useState<FrameFormat>("pfp");
+  const [name, setName] = useState("");
+  const [role, setRole] = useState("");
+  const [image, setImage] = useState<ImageBitmap | null>(null);
+  const [thumbUrl, setThumbUrl] = useState<string | null>(null);
+  const [status, setStatus] = useState<Status>("idle");
+  const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [photoKey, setPhotoKey] = useState(0);
+  const [drag, setDrag] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  const imageRef = useRef<ImageBitmap | null>(null);
+  const seq = useRef(0);
+
+  const stageRef = useCallback(
+    (node: HTMLCanvasElement | null) => {
+      if (node && canvas) {
+        node.width = canvas.width;
+        node.height = canvas.height;
+        node.getContext("2d")?.drawImage(canvas, 0, 0);
+      }
+    },
+    [canvas],
+  );
+
+  useEffect(() => {
+    imageRef.current = image;
+  }, [image]);
+
+  useEffect(() => {
+    if (!image) return;
+    let alive = true;
+    const c = document.createElement("canvas");
+    const scale = Math.min(1, 480 / Math.max(image.width, image.height));
+    c.width = Math.round(image.width * scale);
+    c.height = Math.round(image.height * scale);
+    const ctx = c.getContext("2d");
+    if (!ctx) return;
+    ctx.drawImage(image, 0, 0, c.width, c.height);
+    c.toBlob((b) => {
+      if (alive && b) setThumbUrl(URL.createObjectURL(b));
+    });
+    return () => {
+      alive = false;
+    };
+  }, [image]);
+
+  useEffect(() => {
+    return () => {
+      if (thumbUrl) URL.revokeObjectURL(thumbUrl);
+    };
+  }, [thumbUrl]);
+
+  const runCompose = useCallback(
+    async (
+      bmp: ImageBitmap,
+      fmt: FrameFormat,
+      n: string,
+      r: string,
+      showProcessing: boolean,
+    ) => {
+      const id = ++seq.current;
+      if (showProcessing) setStatus("processing");
+      const t0 = performance.now();
+      const c = await composeFrame({ format: fmt, image: bmp, name: n, role: r });
+      const wait = showProcessing ? Math.max(0, 340 - (performance.now() - t0)) : 0;
+      if (wait > 0) await new Promise((res) => setTimeout(res, wait));
+      if (seq.current !== id) return;
+      setCanvas(c);
+      setStatus("ready");
+    },
+    [],
+  );
+
+  const onPickFile = useCallback(
+    async (file: File) => {
+      if (!/image/i.test(file.type) && !/\.(heic|heif)$/i.test(file.name)) {
+        setStatus("error");
+        setError("That file doesn't look like an image. Try JPG, PNG, or HEIC.");
+        return;
+      }
+      setStatus("processing");
+      setError(null);
+      setBusy(true);
+      try {
+        const bmp = await processPhoto(file);
+        setImage(bmp);
+        setFileName(file.name);
+        setPhotoKey((k) => k + 1);
+        await runCompose(bmp, format, name, role, true);
+      } catch {
+        setStatus("error");
+        setError(
+          "Couldn't read that image. It might be corrupted — try another one.",
+        );
+      } finally {
+        setBusy(false);
+      }
+    },
+    [format, name, role, runCompose],
+  );
+
+  useEffect(() => {
+    const bmp = imageRef.current;
+    if (!bmp) return;
+    const id = ++seq.current;
+    const t = setTimeout(async () => {
+      const c = await composeFrame({ format, image: bmp, name, role });
+      if (seq.current === id) setCanvas(c);
+    }, 160);
+    return () => clearTimeout(t);
+  }, [format, name, role]);
+
+  const reset = useCallback(() => {
+    setImage(null);
+    setThumbUrl(null);
+    setCanvas(null);
+    setStatus("idle");
+    setError(null);
+    setFileName(null);
+    if (inputRef.current) inputRef.current.value = "";
+  }, []);
+
+  const onDownload = useCallback(() => {
+    if (!canvas) return;
+    const stem = format === "pfp" ? "frameingoas-pfp" : "frameingoas-builder-id";
+    toPng(canvas).then((blob) => downloadBlob(blob, `${stem}-${Date.now()}.png`));
+  }, [canvas, format]);
+
+  const onShare = useCallback(async () => {
+    if (!canvas) return;
+    const text =
+      format === "pfp"
+        ? "Sun's up. My HH Goa 2026 PFP frame is ready."
+        : "All set for HH Goa 2026 — my Builder ID is locked in.";
+    const caption = buildCaption(text);
+    const ogPath = `/og?format=${format}&name=${encodeURIComponent(
+      name,
+    )}&role=${encodeURIComponent(role)}`;
+    const png = await toPng(canvas);
+    await shareToX({ caption, file: png, ogPath });
+  }, [canvas, format, name, role]);
+
+  const aspect = format === "pfp" ? "aspect-square" : "aspect-[4/5]";
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-line bg-panel">
+      {/* terminal chrome */}
+      <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
+        <div className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-sunset" />
+          <span className="h-2.5 w-2.5 rounded-full bg-magenta/70" />
+          <span className="h-2.5 w-2.5 rounded-full bg-muted/40" />
+        </div>
+        <p className="font-mono text-[10px] tracking-tight text-muted">
+          {fileName ? `~/uploads/${fileName}` : "~/frameingoas — generator"}
+        </p>
+        {status === "ready" && (
+          <button
+            type="button"
+            onClick={reset}
+            className="flex items-center gap-1 rounded-sm px-2 py-1 font-mono text-[10px] text-muted transition-colors duration-150 hover:text-ink"
+          >
+            <RefreshCw aria-hidden="true" className="h-3 w-3" />
+            New photo
+          </button>
+        )}
+      </div>
+
+      <div className="p-3 sm:p-4">
+        {/* format toggle */}
+        <div
+          role="tablist"
+          aria-label="Frame format"
+          className="grid grid-cols-2 gap-1 rounded-lg border border-line bg-void/60 p-1"
+        >
+          {FORMATS.map((f) => {
+            const active = format === f.value;
+            return (
+              <button
+                key={f.value}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setFormat(f.value)}
+                className={`flex items-center justify-between gap-2 rounded-md px-3 py-2.5 transition-colors duration-100 ${
+                  active
+                    ? "bg-sunset text-void"
+                    : "text-muted hover:text-ink"
+                }`}
+              >
+                <span className="font-mono text-[11px] font-bold tracking-wide sm:text-xs">
+                  {f.label}
+                </span>
+                <span
+                  className={`font-mono text-[10px] ${
+                    active ? "text-void/70" : "text-muted/70"
+                  }`}
+                >
+                  {f.hint}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ID fields — format B only, inline */}
+        {format === "card" && (
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <label className="block">
+              <span className="mb-1 block font-mono text-[10px] tracking-wide text-muted">
+                name<span className="text-muted/60"> · optional</span>
+              </span>
+              <input
+                type="text"
+                value={name}
+                maxLength={26}
+                autoComplete="off"
+                placeholder="Priya Sharma"
+                onChange={(e) => setName(e.target.value)}
+                className="w-full rounded-md border border-line bg-void/60 px-3 py-2.5 font-mono text-sm text-ink placeholder:text-muted/50 focus:border-terminal/60 focus:outline-none"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1 block font-mono text-[10px] tracking-wide text-muted">
+                stack / role<span className="text-muted/60"> · optional</span>
+              </span>
+              <input
+                type="text"
+                value={role}
+                maxLength={32}
+                autoComplete="off"
+                placeholder="Rust · @0xkartik"
+                onChange={(e) => setRole(e.target.value)}
+                className="w-full rounded-md border border-line bg-void/60 px-3 py-2.5 font-mono text-sm text-ink placeholder:text-muted/50 focus:border-terminal/60 focus:outline-none"
+              />
+            </label>
+          </div>
+        )}
+
+        {/* stage */}
+        <div className="mt-3">
+          {!image && status !== "error" ? (
+            <div
+              role="button"
+              tabIndex={0}
+              aria-label="Upload a photo"
+              onClick={() => inputRef.current?.click()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  inputRef.current?.click();
+                }
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDrag(true);
+              }}
+              onDragLeave={() => setDrag(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDrag(false);
+                const file = e.dataTransfer.files?.[0];
+                if (file) onPickFile(file);
+              }}
+              className={`group relative flex min-h-[220px] cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border border-dashed px-6 py-10 text-center transition-colors duration-150 sm:min-h-[260px] ${
+                drag
+                  ? "border-sunset bg-sunset/10"
+                  : "border-muted/30 bg-void/40 hover:border-sunset/60"
+              }`}
+            >
+              <input
+                ref={inputRef}
+                type="file"
+                accept={ACCEPT}
+                className="sr-only"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) onPickFile(file);
+                }}
+              />
+              <span className="flex h-12 w-12 items-center justify-center rounded-lg border border-line bg-panel transition-transform duration-150 group-hover:-translate-y-0.5">
+                <ImagePlus
+                  aria-hidden="true"
+                  className="h-6 w-6 text-sunset"
+                />
+              </span>
+              <div>
+                <p className="font-mono text-sm font-bold tracking-wide text-ink">
+                  Drop image or tap to browse
+                </p>
+                <p className="mt-1 flex items-center justify-center gap-1.5 font-mono text-[11px] text-muted">
+                  <Camera aria-hidden="true" className="h-3.5 w-3.5" />
+                  camera roll · JPG / PNG / HEIC
+                </p>
+              </div>
+              <p className="absolute bottom-3 font-mono text-[10px] tracking-wider text-muted/50">
+                ▸ HEIC converts on-device · nothing leaves your browser
+              </p>
+            </div>
+          ) : status === "error" ? (
+            <div
+              role="alert"
+              className="flex min-h-[200px] flex-col items-center justify-center gap-3 rounded-lg border border-magenta/40 bg-void/40 px-6 py-10 text-center"
+            >
+              <X aria-hidden="true" className="h-6 w-6 text-magenta" />
+              <p className="font-mono text-xs text-ink">{error}</p>
+              <button
+                type="button"
+                onClick={reset}
+                className="rounded-md border border-line px-3 py-2 font-mono text-xs text-muted transition-colors duration-100 hover:text-ink"
+              >
+                Try again
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-3">
+              <div
+                key={`${photoKey}-${format}`}
+                className={`relative w-full max-w-[300px] overflow-hidden rounded-lg border border-line bg-void ${aspect} ${
+                  status === "ready" && canvas ? "snap-in" : ""
+                }`}
+              >
+                {status === "ready" && canvas ? (
+                  <canvas
+                    ref={stageRef}
+                    role="img"
+                    aria-label="Your generated frame preview"
+                    className="h-full w-full"
+                  />
+                ) : (
+                  <div className="flex h-full w-full flex-col items-center justify-center gap-3">
+                    {thumbUrl && (
+                      <img
+                        src={thumbUrl}
+                        alt=""
+                        aria-hidden="true"
+                        className="absolute inset-0 h-full w-full scale-105 object-cover opacity-50 blur-[2px]"
+                      />
+                    )}
+                    <p className="relative font-mono text-xs text-ink">
+                      $ composing_{format === "pfp" ? "pfp" : "builder_id"} ▍
+                    </p>
+                    <p className="relative font-mono text-[10px] text-muted">
+                      smart-cropping… <span className="cursor-blink">▍</span>
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {status === "ready" && canvas && (
+                <div className="grid w-full max-w-[300px] grid-cols-1 gap-2 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={onDownload}
+                    disabled={busy}
+                    className="flex h-12 items-center justify-center gap-2 rounded-md border border-line bg-void/60 px-4 font-mono text-xs font-bold tracking-wide text-ink transition-colors duration-100 hover:border-ink/40 active:translate-y-px disabled:opacity-50"
+                  >
+                    <Download aria-hidden="true" className="h-4 w-4" />
+                    Download PNG
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onShare}
+                    disabled={busy}
+                    className="share-glow cta-scan flex h-12 items-center justify-center gap-2 rounded-md bg-terminal px-4 font-mono text-xs font-bold tracking-wide text-void transition-colors duration-100 hover:bg-[#9cffba] active:translate-y-px disabled:opacity-50"
+                  >
+                    <Share2 aria-hidden="true" className="h-4 w-4" />
+                    Share to X
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
