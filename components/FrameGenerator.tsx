@@ -168,11 +168,17 @@ export function FrameGenerator() {
         ? "Sun's up. My HH Goa 2026 PFP frame is ready."
         : "All set for HH Goa 2026 — my Builder ID is locked in.";
     const caption = buildCaption(text);
+    const stem = format === "pfp" ? "frameingoas-pfp" : "frameingoas-builder-id";
     const ogPath = `/og?format=${format}&name=${encodeURIComponent(
       name,
     )}&role=${encodeURIComponent(role)}`;
     const png = await toPng(canvas);
-    await shareToX({ caption, file: png, ogPath });
+    await shareToX({
+      caption,
+      file: png,
+      fileName: `${stem}-${Date.now()}.png`,
+      ogPath,
+    });
   }, [canvas, format, name, role]);
 
   const aspect = format === "pfp" ? "aspect-square" : "aspect-[4/5]";
@@ -193,7 +199,7 @@ export function FrameGenerator() {
           <button
             type="button"
             onClick={reset}
-            className="flex items-center gap-1 rounded-sm px-2 py-1 font-mono text-[10px] text-muted transition-colors duration-150 hover:text-ink"
+            className="flex min-h-9 items-center gap-1 rounded-sm px-2.5 py-1.5 font-mono text-[10px] text-muted transition-colors duration-150 hover:text-ink"
           >
             <RefreshCw aria-hidden="true" className="h-3 w-3" />
             New photo

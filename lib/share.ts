@@ -12,15 +12,17 @@ export function buildShareUrl(ogPath: string): string {
 export async function shareToX(opts: {
   caption: string;
   file?: Blob | null;
+  fileName?: string;
   ogPath?: string;
 }): Promise<"shared" | "intent"> {
-  const { caption, file, ogPath } = opts;
+  const { caption, file, fileName = "frame.png", ogPath } = opts;
 
   if (file && typeof navigator !== "undefined" && "share" in navigator) {
     const shareData: ShareData = { text: caption };
     const hasFiles = typeof navigator.canShare === "function";
     if (hasFiles) {
-      const fileObj = file instanceof File ? file : new File([file], "frame.png", { type: "image/png" });
+      const fileObj =
+        file instanceof File ? file : new File([file], fileName, { type: "image/png" });
       if (navigator.canShare({ files: [fileObj] })) {
         shareData.files = [fileObj];
       }
