@@ -14,15 +14,15 @@ export function PalmTrees({ className = "" }: { className?: string }) {
         <path
           d="M0,0 C-8,-28 -2,-52 14,-70"
           fill="none"
-          stroke="#f4efe6"
+          stroke="#eef1e7"
           strokeWidth="3"
           strokeLinecap="round"
         />
-        <path d={FROND} fill="#f4efe6" transform="translate(14 -74) rotate(-28)" />
-        <path d={FROND} fill="#f4efe6" transform="translate(14 -74) rotate(8)" />
-        <path d={FROND} fill="#f4efe6" transform="translate(14 -74) rotate(44)" />
-        <path d={FROND} fill="#f4efe6" transform="translate(14 -74) rotate(-62)" />
-        <path d={FROND} fill="#f4efe6" transform="translate(14 -74) scale(0.8) rotate(-96)" />
+        <path d={FROND} fill="#eef1e7" transform="translate(14 -74) rotate(-28)" />
+        <path d={FROND} fill="#eef1e7" transform="translate(14 -74) rotate(8)" />
+        <path d={FROND} fill="#eef1e7" transform="translate(14 -74) rotate(44)" />
+        <path d={FROND} fill="#eef1e7" transform="translate(14 -74) rotate(-62)" />
+        <path d={FROND} fill="#eef1e7" transform="translate(14 -74) scale(0.8) rotate(-96)" />
       </g>
 
       {/* center-low tree */}
@@ -30,15 +30,15 @@ export function PalmTrees({ className = "" }: { className?: string }) {
         <path
           d="M0,0 C-12,-24 -4,-46 10,-62"
           fill="none"
-          stroke="#f4efe6"
+          stroke="#eef1e7"
           strokeWidth="2.5"
           strokeLinecap="round"
         />
-        <path d={FROND} fill="#f4efe6" transform="translate(10 -66) scale(0.9) rotate(-24)" />
-        <path d={FROND} fill="#f4efe6" transform="translate(10 -66) scale(0.9) rotate(12)" />
-        <path d={FROND} fill="#f4efe6" transform="translate(10 -66) scale(0.9) rotate(48)" />
-        <path d={FROND} fill="#f4efe6" transform="translate(10 -66) scale(0.9) rotate(-60)" />
-        <path d={FROND} fill="#f4efe6" transform="translate(10 -66) scale(0.72) rotate(-94)" />
+        <path d={FROND} fill="#eef1e7" transform="translate(10 -66) scale(0.9) rotate(-24)" />
+        <path d={FROND} fill="#eef1e7" transform="translate(10 -66) scale(0.9) rotate(12)" />
+        <path d={FROND} fill="#eef1e7" transform="translate(10 -66) scale(0.9) rotate(48)" />
+        <path d={FROND} fill="#eef1e7" transform="translate(10 -66) scale(0.9) rotate(-60)" />
+        <path d={FROND} fill="#eef1e7" transform="translate(10 -66) scale(0.72) rotate(-94)" />
       </g>
 
       {/* right tree */}
@@ -46,15 +46,15 @@ export function PalmTrees({ className = "" }: { className?: string }) {
         <path
           d="M0,0 C6,-30 -2,-54 -18,-72"
           fill="none"
-          stroke="#f4efe6"
+          stroke="#eef1e7"
           strokeWidth="3"
           strokeLinecap="round"
         />
-        <path d={FROND} fill="#f4efe6" transform="translate(-18 -76) rotate(30)" />
-        <path d={FROND} fill="#f4efe6" transform="translate(-18 -76) rotate(-6)" />
-        <path d={FROND} fill="#f4efe6" transform="translate(-18 -76) rotate(-42)" />
-        <path d={FROND} fill="#f4efe6" transform="translate(-18 -76) rotate(64)" />
-        <path d={FROND} fill="#f4efe6" transform="translate(-18 -76) scale(0.8) rotate(98)" />
+        <path d={FROND} fill="#eef1e7" transform="translate(-18 -76) rotate(30)" />
+        <path d={FROND} fill="#eef1e7" transform="translate(-18 -76) rotate(-6)" />
+        <path d={FROND} fill="#eef1e7" transform="translate(-18 -76) rotate(-42)" />
+        <path d={FROND} fill="#eef1e7" transform="translate(-18 -76) rotate(64)" />
+        <path d={FROND} fill="#eef1e7" transform="translate(-18 -76) scale(0.8) rotate(98)" />
       </g>
     </svg>
   );

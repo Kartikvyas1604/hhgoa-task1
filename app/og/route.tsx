@@ -83,8 +83,8 @@ export async function GET(request: Request) {
             width: "100%",
             height: "100%",
             display: "flex",
-            background: "#0b0e0c",
-            color: "#f4efe6",
+            background: "#0a110c",
+            color: "#eef1e7",
             position: "relative",
             overflow: "hidden",
           }}
@@ -99,7 +99,7 @@ export async function GET(request: Request) {
               borderRadius: "50%",
               transform: "translateX(-50%)",
               background:
-                "radial-gradient(circle, rgba(255,107,53,0.45) 0%, rgba(232,67,122,0.16) 42%, transparent 70%)",
+                "radial-gradient(circle, rgba(249,226,76,0.45) 0%, rgba(232,67,122,0.16) 42%, transparent 70%)",
             }}
           />
           <div
@@ -115,9 +115,9 @@ export async function GET(request: Request) {
               style={{
                 width: 400,
                 height: previewH,
-                background: "#141815",
+                background: "#101b13",
                 borderRadius: 24,
-                border: "3px solid rgba(244,239,230,0.08)",
+                border: "3px solid rgba(238,241,231,0.08)",
                 padding: 22,
                 display: "flex",
                 alignItems: "center",
@@ -130,9 +130,9 @@ export async function GET(request: Request) {
                   width: "100%",
                   height: "100%",
                   borderRadius: 14,
-                  border: "30px solid #ff6b35",
+                  border: "30px solid #f9e24c",
                   background:
-                    "linear-gradient(180deg, #0b0e0c 0%, #2a1c10 62%, #ff6b35 135%)",
+                    "linear-gradient(180deg, #0a110c 0%, #102415 62%, #f9e24c 135%)",
                   display: "flex",
                   position: "relative",
                   overflow: "hidden",
@@ -147,7 +147,7 @@ export async function GET(request: Request) {
                     height: 230,
                     borderRadius: "50%",
                     background:
-                      "radial-gradient(circle, rgba(255,150,80,0.95) 0%, rgba(255,107,53,0.35) 50%, transparent 72%)",
+                      "radial-gradient(circle, rgba(255,238,150,0.95) 0%, rgba(249,226,76,0.35) 50%, transparent 72%)",
                   }}
                 />
                 <div
@@ -165,7 +165,7 @@ export async function GET(request: Request) {
                       width: 112,
                       height: 112,
                       borderRadius: "50%",
-                      background: "rgba(244,239,230,0.9)",
+                      background: "rgba(238,241,231,0.9)",
                     }}
                   />
                   <div
@@ -174,7 +174,7 @@ export async function GET(request: Request) {
                       height: 96,
                       borderTopLeftRadius: 90,
                       borderTopRightRadius: 90,
-                      background: "rgba(244,239,230,0.9)",
+                      background: "rgba(238,241,231,0.9)",
                     }}
                   />
                 </div>
@@ -186,7 +186,7 @@ export async function GET(request: Request) {
                     fontFamily: "'JetBrains Mono'",
                     fontSize: 17,
                     letterSpacing: 2,
-                    color: "#f4efe6",
+                    color: "#eef1e7",
                   }}
                 >
                   HH GOA 2026
@@ -219,7 +219,7 @@ export async function GET(request: Request) {
                   style={{
                     fontFamily: "'JetBrains Mono'",
                     fontSize: 17,
-                    color: "#ff6b35",
+                    color: "#f9e24c",
                     letterSpacing: 1,
                   }}
                 >
@@ -229,7 +229,7 @@ export async function GET(request: Request) {
                   style={{
                     fontFamily: "'JetBrains Mono'",
                     fontSize: 15,
-                    color: "rgba(244,239,230,0.5)",
+                    color: "rgba(238,241,231,0.5)",
                   }}
                 >
                   HH GOA 2026 · GOA, INDIA · 28–31 OCT
@@ -249,7 +249,7 @@ export async function GET(request: Request) {
                 style={{
                   fontFamily: "'JetBrains Mono'",
                   fontSize: 24,
-                  color: "#8a8f87",
+                  color: "#93a39a",
                 }}
               >
                 {`>_ ${roleText}`}
@@ -259,7 +259,7 @@ export async function GET(request: Request) {
                   marginTop: 10,
                   fontFamily: "'JetBrains Mono'",
                   fontSize: 19,
-                  color: "#f4efe6",
+                  color: "#eef1e7",
                 }}
               >
                 Ready for HH Goa 2026 — framed in the terminal, shared from the beach.

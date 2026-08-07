@@ -1,16 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --bg-void: #0b0e0c;
-  --bg-panel: #141815;
-  --bg-raise: #1a1f1a;
-  --accent-sunset: #ff6b35;
-  --accent-magenta: #e8437a;
+  /* Derived from logo.png — dark leaf green base, bright yellow + magenta accents */
+  --bg-void: #0a110c;
+  --bg-panel: #101b13;
+  --bg-raise: #17251a;
+  --accent-sunset: #f9e24c;
+  --accent-magenta: #ea3380;
   --accent-terminal: #7fff9e;
-  --text-primary: #f4efe6;
-  --text-muted: #8a8f87;
-  --border-hairline: rgba(244, 239, 230, 0.08);
-  --ring: rgba(244, 239, 230, 0.28);
+  --text-primary: #eef1e7;
+  --text-muted: #93a39a;
+  --border-hairline: rgba(238, 241, 231, 0.1);
+  --ring: rgba(249, 226, 76, 0.5);
 }
 
 @theme inline {
@@ -52,7 +53,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--accent-terminal);
+    outline: 2px solid var(--accent-sunset);
     outline-offset: 2px;
     border-radius: 2px;
   }
@@ -80,24 +81,19 @@
   background:
     radial-gradient(
       130% 95% at 50% 112%,
-      rgba(255, 107, 53, 0.42) 0%,
-      rgba(232, 67, 122, 0.12) 32%,
-      transparent 60%
+      rgba(249, 226, 76, 0.28) 0%,
+      rgba(232, 67, 122, 0.1) 40%,
+      transparent 62%
     ),
-    radial-gradient(
-      150% 110% at 50% -30%,
-      rgba(124, 45, 34, 0.3) 0%,
-      transparent 58%
-    ),
-    linear-gradient(180deg, var(--bg-void) 0%, #0e1410 42%, #1a160e 72%, #2b1c0e 100%);
+    linear-gradient(180deg, var(--bg-void) 0%, #0d1810 42%, #112113 72%, #1b2c19 100%);
 }
 
 .sun-disc {
   background: radial-gradient(
     closest-side,
-    rgba(255, 190, 130, 0.9) 0%,
-    rgba(255, 107, 53, 0.55) 46%,
-    rgba(255, 107, 53, 0) 100%
+    rgba(255, 239, 150, 0.9) 0%,
+    rgba(249, 226, 76, 0.55) 46%,
+    rgba(249, 226, 76, 0) 100%
   );
 }
 

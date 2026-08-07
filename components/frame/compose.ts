@@ -18,14 +18,14 @@ export const BUILDER_TITLES = [
 ];
 
 export const PALETTE = {
-  void: "#0b0e0c",
-  panel: "#141815",
-  sunset: "#ff6b35",
-  magenta: "#e8437a",
+  void: "#0a110c",
+  panel: "#101b13",
+  sunset: "#f9e24c",
+  magenta: "#ea3380",
   terminal: "#7fff9e",
-  ink: "#f4efe6",
-  muted: "#aab0a6",
-  hairline: "rgba(244,239,230,0.28)",
+  ink: "#eef1e7",
+  muted: "#a9b7ac",
+  hairline: "rgba(238,241,231,0.28)",
 };
 
 let familyCache: { display: string; mono: string } | null = null;
@@ -148,7 +148,7 @@ export function fitFont(
 
 function cornerTicks(ctx: CanvasRenderingContext2D, W: number, inset: number, len: number) {
   ctx.save();
-  ctx.strokeStyle = "rgba(244,239,230,0.85)";
+  ctx.strokeStyle = "rgba(238,241,231,0.85)";
   ctx.lineWidth = 4;
   ctx.lineCap = "round";
   const corners: [number, number, number][] = [
@@ -183,19 +183,19 @@ function drawPfp(ctx: CanvasRenderingContext2D, W: number, img: ImageBitmap) {
   drawCover(ctx, img, 0, 0, W, W);
 
   const top = ctx.createLinearGradient(0, 0, 0, W * 0.24);
-  top.addColorStop(0, "rgba(11,14,12,0.72)");
-  top.addColorStop(1, "rgba(11,14,12,0)");
+  top.addColorStop(0, "rgba(10,17,12,0.72)");
+  top.addColorStop(1, "rgba(10,17,12,0)");
   ctx.fillStyle = top;
   ctx.fillRect(0, 0, W, W * 0.24);
 
   const bottom = ctx.createLinearGradient(0, W * 0.62, 0, W);
-  bottom.addColorStop(0, "rgba(11,14,12,0)");
-  bottom.addColorStop(1, "rgba(11,14,12,0.82)");
+  bottom.addColorStop(0, "rgba(10,17,12,0)");
+  bottom.addColorStop(1, "rgba(10,17,12,0.82)");
   ctx.fillStyle = bottom;
   ctx.fillRect(0, W * 0.58, W, W * 0.42);
 
   const sun = ctx.createRadialGradient(W * 0.15, W * 1.06, 0, W * 0.15, W * 1.06, W * 0.34);
-  sun.addColorStop(0, "rgba(255,107,53,0.9)");
+  sun.addColorStop(0, "rgba(249,226,76,0.9)");
   sun.addColorStop(0.45, "rgba(232,67,122,0.32)");
   sun.addColorStop(1, "rgba(232,67,122,0)");
   ctx.fillStyle = sun;
@@ -206,7 +206,7 @@ function drawPfp(ctx: CanvasRenderingContext2D, W: number, img: ImageBitmap) {
   ctx.strokeRect(0, 0, W, W);
 
   ctx.lineWidth = 2;
-  ctx.strokeStyle = "rgba(244,239,230,0.35)";
+  ctx.strokeStyle = "rgba(238,241,231,0.35)";
   ctx.strokeRect(BORDER / 2, BORDER / 2, W - BORDER, W - BORDER);
 
   cornerTicks(ctx, W, 30, 30);
@@ -216,11 +216,11 @@ function drawPfp(ctx: CanvasRenderingContext2D, W: number, img: ImageBitmap) {
   ctx.font = `800 ${BORDER * 0.78}px ${fams.mono}`;
   drawSpaced(ctx, "HH GOA 2026", 72, 106, 3);
 
-  ctx.fillStyle = "rgba(244,239,230,0.78)";
+  ctx.fillStyle = "rgba(238,241,231,0.78)";
   ctx.font = `400 ${BORDER * 0.44}px ${fams.mono}`;
   drawSpaced(ctx, "LESS NOISE · MORE SIGNAL", 72, 142, 2);
 
-  ctx.fillStyle = "rgba(244,239,230,0.9)";
+  ctx.fillStyle = "rgba(238,241,231,0.9)";
   ctx.font = `500 ${BORDER * 0.44}px ${fams.mono}`;
   drawSpaced(ctx, "GOA, INDIA · 28–31 OCT", W - 72, 106, 2, "right");
 
@@ -256,8 +256,8 @@ function drawCard(ctx: CanvasRenderingContext2D, W: number, H: number, img: Imag
   ctx.clip();
   drawCover(ctx, img, I, bandY, W - I * 2, bandH);
   const bandScrim = ctx.createLinearGradient(0, bandY + bandH * 0.5, 0, bandY + bandH);
-  bandScrim.addColorStop(0, "rgba(11,14,12,0)");
-  bandScrim.addColorStop(1, "rgba(11,14,12,0.55)");
+  bandScrim.addColorStop(0, "rgba(10,17,12,0)");
+  bandScrim.addColorStop(1, "rgba(10,17,12,0.55)");
   ctx.fillStyle = bandScrim;
   ctx.fillRect(I, bandY, W - I * 2, bandH);
   ctx.restore();
@@ -270,7 +270,7 @@ function drawCard(ctx: CanvasRenderingContext2D, W: number, H: number, img: Imag
   ctx.stroke();
 
   const sun = ctx.createRadialGradient(W - 120, H * 0.52, 0, W - 120, H * 0.52, 420);
-  sun.addColorStop(0, "rgba(255,107,53,0.22)");
+  sun.addColorStop(0, "rgba(249,226,76,0.22)");
   sun.addColorStop(0.5, "rgba(232,67,122,0.08)");
   sun.addColorStop(1, "rgba(232,67,122,0)");
   ctx.fillStyle = sun;
@@ -319,7 +319,7 @@ function drawCard(ctx: CanvasRenderingContext2D, W: number, H: number, img: Imag
   ctx.font = `500 26px ${fams.mono}`;
   stats.forEach(([label, value], i) => {
     const y = contentY + 316 + i * 62;
-    ctx.fillStyle = "rgba(244,239,230,0.5)";
+    ctx.fillStyle = "rgba(238,241,231,0.5)";
     drawSpaced(ctx, label, I, y, 2);
     ctx.fillStyle = PALETTE.ink;
     ctx.textAlign = "right";
@@ -338,7 +338,7 @@ function drawCard(ctx: CanvasRenderingContext2D, W: number, H: number, img: Imag
   ctx.fillStyle = PALETTE.terminal;
   drawSpaced(ctx, "#FrameInGoa", I, H - I - 44, 1);
   ctx.textAlign = "right";
-  ctx.fillStyle = "rgba(244,239,230,0.6)";
+  ctx.fillStyle = "rgba(238,241,231,0.6)";
   ctx.font = `500 26px ${fams.mono}`;
   drawSpaced(ctx, "FRAME_IN/GOA · 001", W - I, H - I - 44, 1, "right");
   ctx.textAlign = "left";
@@ -346,7 +346,7 @@ function drawCard(ctx: CanvasRenderingContext2D, W: number, H: number, img: Imag
   ctx.save();
   ctx.translate(34, H / 2);
   ctx.rotate(-Math.PI / 2);
-  ctx.fillStyle = "rgba(244,239,230,0.28)";
+  ctx.fillStyle = "rgba(238,241,231,0.28)";
   ctx.font = `600 22px ${fams.mono}`;
   drawSpaced(ctx, "HHGOA26 // BUILD IN GOA", 0, 0, 3);
   ctx.restore();
