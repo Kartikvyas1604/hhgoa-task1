@@ -15,7 +15,10 @@ const BUILDERS = [
 ];
 
 function titleFor(name: string | null): string {
-  if (name && name.trim()) return name.trim().toUpperCase().slice(0, 18);
+  if (name && name.trim()) {
+    const t = name.trim().toUpperCase();
+    return t.length > 18 ? `${t.slice(0, 17)}…` : t;
+  }
   let hash = 0;
   const key = name ?? "builder";
   for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
