@@ -1,61 +1,126 @@
-const FROND =
-  "M0,0 C16,-12 40,-38 76,-42 C46,-29 22,-11 0,0 Z";
+const FILL = "#f4d03f";
+const STROKE = "#14150f";
+const SW = 4;
+
+/* Droopy leaf, base length 350 (scaled per frond). Body arches above origin,
+   tip hangs below — tips of the steepest fronds stay inside the viewBox. */
+const FROND = "M0,0 C40,-58 210,-92 350,-40 C230,40 90,34 0,0 Z";
+
+/* Steep fronds are shorter so the crown fits the band without clipping. */
+const FRONDS = [
+  { a: -75, l: 142 },
+  { a: -60, l: 147 },
+  { a: -45, l: 168 },
+  { a: -30, l: 220 },
+  { a: -15, l: 260 },
+  { a: 0, l: 260 },
+  { a: 15, l: 260 },
+  { a: 30, l: 220 },
+  { a: 45, l: 168 },
+  { a: 60, l: 147 },
+  { a: 75, l: 142 },
+];
+
+function Palm({
+  cx,
+  cy = 150,
+  s = 1,
+  flip = false,
+}: {
+  cx: number;
+  cy?: number;
+  s?: number;
+  flip?: boolean;
+}) {
+  return (
+    <g transform={`translate(${cx} ${cy}) scale(${flip ? -s : s} ${s})`}>
+      <path
+        d="M0,0 C18,90 4,180 0,300"
+        fill="none"
+        stroke={STROKE}
+        strokeWidth={30}
+        strokeLinecap="round"
+        vectorEffect="non-scaling-stroke"
+      />
+      <path
+        d="M0,0 C18,90 4,180 0,300"
+        fill="none"
+        stroke={FILL}
+        strokeWidth={22}
+        strokeLinecap="round"
+        vectorEffect="non-scaling-stroke"
+      />
+      {FRONDS.map((f) => (
+        <path
+          key={f.a}
+          d={FROND}
+          fill={FILL}
+          stroke={STROKE}
+          strokeWidth={SW}
+          strokeLinejoin="round"
+          transform={`rotate(${f.a}) scale(${f.l / 350})`}
+          vectorEffect="non-scaling-stroke"
+        />
+      ))}
+      <circle
+        cx="0"
+        cy="-6"
+        r="9"
+        fill={FILL}
+        stroke={STROKE}
+        strokeWidth={SW}
+        vectorEffect="non-scaling-stroke"
+      />
+      <circle
+        cx="-15"
+        cy="8"
+        r="7"
+        fill={FILL}
+        stroke={STROKE}
+        strokeWidth={SW}
+        vectorEffect="non-scaling-stroke"
+      />
+      <circle
+        cx="15"
+        cy="8"
+        r="7"
+        fill={FILL}
+        stroke={STROKE}
+        strokeWidth={SW}
+        vectorEffect="non-scaling-stroke"
+      />
+    </g>
+  );
+}
+
+function Bush({ x, s = 1 }: { x: number; s?: number }) {
+  return (
+    <path
+      d={`M${x},300 C${x - 42 * s},270 ${x + 42 * s},270 ${x},300 Z`}
+      fill={FILL}
+      stroke={STROKE}
+      strokeWidth={SW}
+      strokeLinejoin="round"
+      vectorEffect="non-scaling-stroke"
+    />
+  );
+}
 
 export function PalmTrees({ className = "" }: { className?: string }) {
   return (
     <svg
       aria-hidden="true"
-      viewBox="0 0 1440 120"
+      viewBox="0 0 1440 300"
       preserveAspectRatio="none"
-      className={`pointer-events-none block h-[60px] w-full sm:h-[90px] ${className}`}
+      className={`pointer-events-none block h-[150px] w-full sm:h-[210px] ${className}`}
     >
-      {/* left tree */}
-      <g transform="translate(180 118)" opacity="0.5">
-        <path
-          d="M0,0 C-8,-28 -2,-52 14,-70"
-          fill="none"
-          stroke="#eef1e7"
-          strokeWidth="3"
-          strokeLinecap="round"
-        />
-        <path d={FROND} fill="#eef1e7" transform="translate(14 -74) rotate(-28)" />
-        <path d={FROND} fill="#eef1e7" transform="translate(14 -74) rotate(8)" />
-        <path d={FROND} fill="#eef1e7" transform="translate(14 -74) rotate(44)" />
-        <path d={FROND} fill="#eef1e7" transform="translate(14 -74) rotate(-62)" />
-        <path d={FROND} fill="#eef1e7" transform="translate(14 -74) scale(0.8) rotate(-96)" />
-      </g>
-
-      {/* center-low tree */}
-      <g transform="translate(760 120)" opacity="0.32">
-        <path
-          d="M0,0 C-12,-24 -4,-46 10,-62"
-          fill="none"
-          stroke="#eef1e7"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
-        <path d={FROND} fill="#eef1e7" transform="translate(10 -66) scale(0.9) rotate(-24)" />
-        <path d={FROND} fill="#eef1e7" transform="translate(10 -66) scale(0.9) rotate(12)" />
-        <path d={FROND} fill="#eef1e7" transform="translate(10 -66) scale(0.9) rotate(48)" />
-        <path d={FROND} fill="#eef1e7" transform="translate(10 -66) scale(0.9) rotate(-60)" />
-        <path d={FROND} fill="#eef1e7" transform="translate(10 -66) scale(0.72) rotate(-94)" />
-      </g>
-
-      {/* right tree */}
-      <g transform="translate(1190 120)" opacity="0.42">
-        <path
-          d="M0,0 C6,-30 -2,-54 -18,-72"
-          fill="none"
-          stroke="#eef1e7"
-          strokeWidth="3"
-          strokeLinecap="round"
-        />
-        <path d={FROND} fill="#eef1e7" transform="translate(-18 -76) rotate(30)" />
-        <path d={FROND} fill="#eef1e7" transform="translate(-18 -76) rotate(-6)" />
-        <path d={FROND} fill="#eef1e7" transform="translate(-18 -76) rotate(-42)" />
-        <path d={FROND} fill="#eef1e7" transform="translate(-18 -76) rotate(64)" />
-        <path d={FROND} fill="#eef1e7" transform="translate(-18 -76) scale(0.8) rotate(98)" />
-      </g>
+      <Palm cx={60} />
+      <Palm cx={1380} flip />
+      <Palm cx={730} cy={170} s={0.6} />
+      <Bush x={312} />
+      <Bush x={640} s={0.75} />
+      <Bush x={884} s={0.85} />
+      <Bush x={1204} />
     </svg>
   );
 }

@@ -84,7 +84,7 @@ export default async function SharePage({ searchParams }: PageProps) {
       <p className="font-mono text-[11px] tracking-[0.25em] text-muted">
         HH GOA 2026 · {frameLabel} · {variantLabel.toUpperCase()}
       </p>
-      <h1 className="mt-3 font-display text-3xl font-bold tracking-tight sm:text-4xl">
+      <h1 className="text-stamp mt-3 font-display text-3xl font-bold tracking-tight sm:text-4xl">
         {p.name ? `${p.name}'s frame is ready.` : "Your frame is ready."}
       </h1>
       <p className="mt-2 max-w-md text-[15px] leading-relaxed text-muted">

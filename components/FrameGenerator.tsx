@@ -374,7 +374,9 @@ export function FrameGenerator() {
                 onClick={() => setFormat(f.value)}
                 className={`flex items-center justify-between gap-2 rounded-md px-3 py-2.5 transition-colors duration-100 ${
                   active
-                    ? "bg-sunset text-void"
+                    ? f.value === "pfp"
+                      ? "bg-sunset text-void"
+                      : "bg-magenta text-void"
                     : "text-muted hover:text-ink"
                 }`}
               >
@@ -597,7 +599,7 @@ export function FrameGenerator() {
                       type="button"
                       onClick={onShare}
                       disabled={busy}
-                      className="share-glow cta-scan flex h-12 items-center justify-center gap-2 rounded-md bg-terminal px-4 font-mono text-xs font-bold tracking-wide text-void transition-colors duration-100 hover:bg-[#9cffba] active:translate-y-px disabled:opacity-50"
+                      className="cta-scan flex h-12 items-center justify-center gap-2 rounded-md bg-terminal px-4 font-mono text-xs font-bold tracking-wide text-void transition-colors duration-100 hover:bg-[#9cffba] active:translate-y-px disabled:opacity-50"
                     >
                       <Share2 aria-hidden="true" className="h-4 w-4" />
                       Share to X

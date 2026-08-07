@@ -33,11 +33,12 @@ export function HomeHero() {
             data-hero
             className="font-mono text-[11px] tracking-[0.22em] text-sunset sm:text-xs"
           >
-            HH GOA 2026 · GOA, INDIA · 28–31 OCT 2026
+            HH GOA 2026 · <span className="text-pink">गोवा</span> · GOA, INDIA ·
+            28–31 OCT 2026
           </p>
           <h1
             data-hero
-            className="mt-4 font-display text-5xl font-bold leading-[0.98] tracking-tight sm:text-6xl lg:text-7xl"
+            className="text-stamp mt-4 font-display text-5xl font-bold leading-[0.98] tracking-tight sm:text-6xl lg:text-7xl"
           >
             Frame your
             <br />

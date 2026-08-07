@@ -1,17 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  /* Derived from logo.png — dark leaf green base, bright yellow + magenta accents */
-  --bg-void: #0a110c;
-  --bg-panel: #101b13;
-  --bg-raise: #17251a;
-  --accent-sunset: #f9e24c;
-  --accent-magenta: #ea3380;
-  --accent-terminal: #7fff9e;
+  /* HH Goa 2026 — aligned to hhgoa.com: flat jungle green base, mustard + magenta accents */
+  --bg-jungle: #2a6b45;
+  --bg-jungle-deep: #1f5233;
+  --bg-raise: #245c3c;
+  --accent-mustard: #f4d03f;
+  --accent-pink: #e8348e;
+  --accent-terminal: #a5ffc3;
   --text-primary: #eef1e7;
-  --text-muted: #93a39a;
-  --border-hairline: rgba(238, 241, 231, 0.1);
-  --ring: rgba(249, 226, 76, 0.5);
+  --text-muted: #bcd7c6;
+  --border-hairline: rgba(238, 241, 231, 0.16);
+  --ring: rgba(244, 208, 63, 0.5);
+  --frond-fill: #f4d03f;
+  --frond-stroke: #14150f;
+
+  /* legacy aliases (components still reference the old names) */
+  --bg-void: var(--bg-jungle);
+  --bg-panel: var(--bg-jungle-deep);
+  --accent-sunset: var(--accent-mustard);
+  --accent-magenta: var(--accent-pink);
 }
 
 @theme inline {
@@ -21,6 +29,7 @@
   --color-sunset: var(--accent-sunset);
   --color-magenta: var(--accent-magenta);
   --color-terminal: var(--accent-terminal);
+  --color-pink: var(--accent-pink);
   --color-ink: var(--text-primary);
   --color-muted: var(--text-muted);
   --color-line: var(--border-hairline);
@@ -48,8 +57,8 @@
   }
 
   ::selection {
-    background: var(--accent-sunset);
-    color: var(--bg-void);
+    background: var(--accent-mustard);
+    color: #14150f;
   }
 
   :focus-visible {
@@ -66,45 +75,42 @@
     background: var(--bg-void);
   }
   ::-webkit-scrollbar-thumb {
-    background: #2a2f2a;
+    background: var(--bg-jungle-deep);
     border-radius: 8px;
     border: 2px solid var(--bg-void);
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #3a403a;
+    background: #2a5f3e;
   }
 }
 
 /* ---- Atmosphere ---- */
 
-.dusk-hero {
-  background:
-    radial-gradient(
-      130% 95% at 50% 112%,
-      rgba(249, 226, 76, 0.28) 0%,
-      rgba(232, 67, 122, 0.1) 40%,
-      transparent 62%
-    ),
-    linear-gradient(180deg, var(--bg-void) 0%, #0d1810 42%, #112113 72%, #1b2c19 100%);
-}
-
-.sun-disc {
-  background: radial-gradient(
-    closest-side,
-    rgba(255, 239, 150, 0.9) 0%,
-    rgba(249, 226, 76, 0.55) 46%,
-    rgba(249, 226, 76, 0) 100%
-  );
-}
-
-.grain::after {
+/* subtle paper grain over the flat jungle green — 4-6%, no glow, no vignette */
+body::after {
   content: "";
-  position: absolute;
+  position: fixed;
   inset: 0;
+  z-index: 100;
   pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  mix-blend-mode: overlay;
-  opacity: 0.55;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* stencil headline — mustard fill + hard black outline, no soft glow */
+.text-stamp {
+  color: var(--accent-mustard);
+  text-shadow: 2px 0 0 var(--frond-stroke), -2px 0 0 var(--frond-stroke),
+    0 2px 0 var(--frond-stroke), 0 -2px 0 var(--frond-stroke),
+    2px 2px 0 var(--frond-stroke), -2px -2px 0 var(--frond-stroke),
+    2px -2px 0 var(--frond-stroke), -2px 2px 0 var(--frond-stroke);
+}
+@supports (-webkit-text-stroke: 2px var(--frond-stroke)) {
+  .text-stamp {
+    -webkit-text-stroke: 2px var(--frond-stroke);
+    paint-order: stroke fill;
+    text-shadow: none;
+  }
 }
 
 /* ---- Motion ---- */
@@ -121,24 +127,6 @@
 .cursor-blink {
   animation: cursor-blink 1s step-end infinite;
   color: var(--accent-terminal);
-}
-
-@keyframes glow-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(127, 255, 158, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 0 9px rgba(127, 255, 158, 0);
-  }
-}
-.share-glow {
-  animation: glow-pulse 2.4s var(--ease-out) infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .share-glow {
-    animation: none;
-  }
 }
 
 @keyframes snap-in {

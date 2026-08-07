@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Timer, Upload, WandSparkles } from "lucide-react";
 import { HomeHero } from "@/components/HomeHero";
-import { PalmTrees } from "@/components/PalmTrees";
+import { Flower } from "@/components/Botanicals";
 
 export const metadata: Metadata = {
   title: "Frame & ID Card Generator",
@@ -44,7 +44,7 @@ export default function Home() {
                 <s.icon aria-hidden="true" className="h-5 w-5 text-sunset" />
                 <span className="font-mono text-xs text-muted">{s.n}</span>
               </div>
-              <h2 className="mt-4 font-display text-2xl font-bold tracking-tight">
+              <h2 className="text-stamp mt-4 font-display text-2xl font-bold tracking-tight">
                 {s.title}
               </h2>
               <p className="mt-2 text-[15px] leading-relaxed text-muted">
@@ -53,12 +53,13 @@ export default function Home() {
             </div>
           ))}
         </div>
-      </section>
 
-      {/* footer margin trees */}
-      <div className="mt-20">
-        <PalmTrees className="mx-auto w-full max-w-6xl" />
-      </div>
+        <div className="mt-10 flex items-center gap-3">
+          <span className="h-px flex-1 bg-line" />
+          <Flower />
+          <span className="h-px flex-1 bg-line" />
+        </div>
+      </section>
     </>
   );
 }

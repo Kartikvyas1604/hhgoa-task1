@@ -29,9 +29,9 @@ const VARIANT_THEMES: Record<
   string,
   { bg: string; panel: string; accent: string; accentAlt: string; terminal: string }
 > = {
-  sunset: { bg: "#0a110c", panel: "#101b13", accent: "#f9e24c", accentAlt: "#ea3380", terminal: "#7fff9e" },
-  jade: { bg: "#07130e", panel: "#0d1f17", accent: "#7fff9e", accentAlt: "#2c663e", terminal: "#f9e24c" },
-  monsoon: { bg: "#120a10", panel: "#1c1118", accent: "#ea3380", accentAlt: "#f9e24c", terminal: "#7fff9e" },
+  sunset: { bg: "#2a6b45", panel: "#1f5233", accent: "#f4d03f", accentAlt: "#e8348e", terminal: "#a5ffc3" },
+  jade: { bg: "#1f5233", panel: "#17412a", accent: "#a5ffc3", accentAlt: "#f4d03f", terminal: "#f4d03f" },
+  monsoon: { bg: "#2a6b45", panel: "#1f5233", accent: "#e8348e", accentAlt: "#f4d03f", terminal: "#a5ffc3" },
 };
 
 type FontSpec = { name: string; data: ArrayBuffer; weight: 400 | 700; style: "normal" };
@@ -135,20 +135,20 @@ export async function GET(request: Request) {
               padding: "56px 64px",
             }}
           >
-            <div
-              style={{
-                width: 400,
-                height: previewH,
-                background: "#101b13",
-                borderRadius: 24,
-                border: "3px solid rgba(238,241,231,0.08)",
-                padding: 22,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-              }}
-            >
+              <div
+                style={{
+                  width: 400,
+                  height: previewH,
+                  background: theme.panel,
+                  borderRadius: 24,
+                  border: "3px solid rgba(238,241,231,0.14)",
+                  padding: 22,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
               <div
                 style={{
                   width: "100%",
@@ -297,7 +297,7 @@ export async function GET(request: Request) {
                 style={{
                   fontFamily: "'JetBrains Mono'",
                   fontSize: 24,
-                  color: "#93a39a",
+                  color: "#bcd7c6",
                 }}
               >
                 {`>_ ${roleText}`}

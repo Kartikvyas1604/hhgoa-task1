@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PalmTrees } from "@/components/PalmTrees";
+import { Flower } from "@/components/Botanicals";
 
 export function Footer() {
   return (
@@ -7,7 +8,7 @@ export function Footer() {
       <div className="mx-auto w-full max-w-6xl px-4 pb-4 pt-10 sm:px-6">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="font-display text-2xl font-bold tracking-tight">
+            <p className="text-stamp font-display text-2xl font-bold tracking-tight">
               Less Noise. More Signal.
             </p>
             <p className="mt-2 max-w-sm font-mono text-xs leading-relaxed text-muted">
@@ -26,7 +27,12 @@ export function Footer() {
             <span className="text-muted/70">#FrameInGoa</span>
           </nav>
         </div>
-        <div className="mt-10 flex items-center justify-between border-t border-line pt-4">
+        <div className="mt-8 flex items-center gap-3">
+          <span className="h-px flex-1 bg-line" />
+          <Flower className="h-5 w-5" />
+          <span className="h-px flex-1 bg-line" />
+        </div>
+        <div className="mt-4 flex items-center justify-between border-t border-line pt-4">
           <p className="font-mono text-[10px] text-muted/70">
             © 2026 FrameInGoa · built on the beach
           </p>
