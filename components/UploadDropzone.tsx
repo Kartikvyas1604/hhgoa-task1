@@ -4,7 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { ImagePlus } from "lucide-react";
 import { PHOTO_MASK_PATH, PHOTO_MASK_VIEWBOX } from "@/components/frame/photo-mask";
 
-const ACCEPT = "image/jpeg,image/png,image/heic,image/heif,.jpg,.jpeg,.png,.heic";
+const ACCEPT = "image/jpeg,image/png,image/webp,image/avif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.avif,.heic,.heif";
 
 interface UploadDropzoneProps {
   onPick: (file: File) => void;
@@ -79,7 +79,7 @@ export function UploadDropzone({ onPick, busy = false }: UploadDropzoneProps) {
             {busy ? "PROCESSING…" : "DROP PHOTO OR TAP TO BROWSE"}
           </p>
           <p className="font-mono text-[9px] tracking-wide text-[var(--text-cream)]/60 sm:text-[10px]">
-            JPG · PNG · HEIC
+            JPG · PNG · WEBP · HEIC
           </p>
         </div>
       </div>

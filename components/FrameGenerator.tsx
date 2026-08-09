@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 import { CardArt } from "@/components/frame/CardArt";
 import { renderCardToPng } from "@/components/frame/export";
 import { generateQrDataUrl } from "@/components/frame/qr";
-import { bitmapToDataUrl, processPhoto } from "@/components/frame/image";
+import { MAX_FILE_BYTES, looksLikeImage, processPhoto } from "@/components/frame/image";
 import type { Side, SocialLinks } from "@/components/frame/types";
 import { UploadDropzone } from "@/components/UploadDropzone";
 import { CardForm } from "@/components/CardForm";
@@ -20,8 +20,6 @@ type Status = "idle" | "processing" | "ready" | "error";
  * portrait, interactive artifact; the X/timeline preview is always
  * generated as landscape separately (see /share's OG image). */
 const orientation = "portrait" as const;
-
-const MAX_FILE_BYTES = 5 * 1024 * 1024;
 
 export function FrameGenerator() {
   const [side, setSide] = useState<Side>("front");
@@ -59,22 +57,21 @@ export function FrameGenerator() {
   }, [buildSharePath]);
 
   const onPickFile = useCallback(async (file: File) => {
-    if (!/image/i.test(file.type) && !/\.(heic|heif)$/i.test(file.name)) {
+    if (!looksLikeImage(file)) {
       setStatus("error");
-      setError("That file doesn't look like an image. Try JPG, PNG, or HEIC.");
+      setError("That file doesn't look like an image. Try JPG, PNG, WebP, or HEIC.");
       return;
     }
     if (file.size > MAX_FILE_BYTES) {
       setStatus("error");
-      setError("That photo is over 5MB. Pick a smaller one, or a compressed export.");
+      setError("That photo is over 25MB. Pick a smaller one, or a compressed export.");
       return;
     }
     setStatus("processing");
     setError(null);
     setBusy(true);
     try {
-      const bmp = await processPhoto(file);
-      const dataUrl = bitmapToDataUrl(bmp, 1800, 0.95);
+      const dataUrl = await processPhoto(file);
       const t0 = performance.now();
       const wait = Math.max(0, 360 - (performance.now() - t0));
       if (wait > 0) await new Promise((r) => setTimeout(r, wait));
@@ -86,9 +83,11 @@ export function FrameGenerator() {
         hasCelebrated.current = true;
         setBloom(true);
       }
-    } catch {
+    } catch (err) {
+      console.error("[photo] decode failed:", err);
+      const reason = err instanceof Error && err.message ? err.message : String(err);
       setStatus("error");
-      setError("Couldn't read that image. It might be corrupted — try another one.");
+      setError(`Couldn't read that image on this device (${reason}). Try another, or convert to JPG/PNG first.`);
     } finally {
       setBusy(false);
     }
