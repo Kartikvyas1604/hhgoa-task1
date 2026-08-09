@@ -4,8 +4,8 @@ import QRCodeStyling from "qr-code-styling";
  * Real, scannable QR code styled to match the card's own baked sample QR —
  * dot-shaped modules and ringed corner markers in card mustard, on a
  * transparent ground — instead of a plain square-module QR. Returns a
- * self-contained PNG data URL so it drops straight into an `<image>`
- * element in both the live preview and the exported SVG.
+ * self-contained PNG data URL so it drops straight into an `<image>` element
+ * in both the live preview and the exported SVG.
  */
 export async function generateQrDataUrl(text: string): Promise<string> {
   const qr = new QRCodeStyling({

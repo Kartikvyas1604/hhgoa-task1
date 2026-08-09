@@ -30,33 +30,27 @@ export async function shareToX(opts: {
   ogPath?: string;
 }): Promise<"shared" | "intent"> {
   const { caption, file, fileName = "frame.png", ogPath } = opts;
-
-  // The link must live in the post text itself — that way the shared
-  // landscape card's link preview (OG image) renders in the timeline AND the
-  // link survives even when sharing via a native share sheet (which strips
-  // any separate URL field).
-  const url = ogPath ? buildShareUrl(ogPath) : window.location.href;
-  const text = caption.includes(url) ? caption : `${caption}\n${url}`;
-
+  
+  // First try native share (opens X app if available)
   if (file && typeof navigator !== "undefined" && "share" in navigator) {
-    const shareData: ShareData = { text };
-    const hasFiles = typeof navigator.canShare === "function";
-    if (hasFiles) {
-      const fileObj =
-        file instanceof File ? file : new File([file], fileName, { type: "image/png" });
-      if (navigator.canShare({ files: [fileObj] })) {
-        shareData.files = [fileObj];
-      }
-    }
     try {
-      await navigator.share(shareData);
+      await navigator.share({
+        text: caption,
+        files: [file ? (file instanceof File ? file : new File([file], fileName, { type: "image/png" })) : new File([], fileName, { type: "image/png" })],
+        url: ogPath || window.location.href
+      });
       return "shared";
     } catch (err) {
       if ((err as Error)?.name === "AbortError") return "intent";
     }
   }
 
-  const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+  // Fallback to deep link for mobile apps
+  const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(caption)}&url=${encodeURIComponent(
+    ogPath || window.location.href
+  )}`;
+
+  // Last resort: open in browser
   window.open(tweetUrl, "_blank", "noopener,noreferrer");
   return "intent";
 }
@@ -154,6 +148,20 @@ export async function persistCard(opts: {
     console.error("[card] persist failed:", err);
     throw err;
   }
+}
+
+export function isIOSDevice(): boolean {
+  if (typeof navigator !== "undefined" && navigator.userAgent) {
+    return /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  }
+  return false;
+}
+
+export function isAndroidDevice(): boolean {
+  if (typeof navigator !== "undefined" && navigator.userAgent) {
+    return /Android/i.test(navigator.userAgent);
+  }
+  return false;
 }
 
 export function downloadBlob(blob: Blob, filename: string) {
