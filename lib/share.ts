@@ -93,11 +93,37 @@ export async function persistCard(opts: {
   try {
     // sequential, not Promise.all — big PNG blobs read into base64 strings
     // hit peak memory on mobile when done concurrently
-    const portraitDataUrl = await blobToDataUrl(opts.portraitBlob);
-    const portraitBackDataUrl = opts.portraitBackBlob
-      ? await blobToDataUrl(opts.portraitBackBlob)
-      : undefined;
-    const landscapeDataUrl = await blobToDataUrl(opts.landscapeBlob);
+    // Compress oversized PNGs to JPEG to reduce payload size and avoid
+    // server-side 413 (Payload Too Large) errors when posting JSON.
+    async function maybeCompressToJpeg(blob: Blob, targetBytes = 3_500_000): Promise<Blob> {
+      if (blob.size <= targetBytes) return blob;
+      if (typeof createImageBitmap !== "function") return blob;
+      try {
+        const img = await createImageBitmap(blob as any);
+        const canvas = new OffscreenCanvas(img.width, img.height);
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return blob;
+        ctx.drawImage(img, 0, 0);
+        // try a few quality settings until we hit the target size
+        const qualities = [0.9, 0.8, 0.7, 0.6, 0.5];
+        for (const q of qualities) {
+          const out = await canvas.convertToBlob({ type: "image/jpeg", quality: q });
+          if (out.size <= targetBytes) return out;
+        }
+        // fall back to last attempt
+        return await canvas.convertToBlob({ type: "image/jpeg", quality: 0.5 });
+      } catch (err) {
+        return blob;
+      }
+    }
+
+    const portraitBlob = await maybeCompressToJpeg(opts.portraitBlob);
+    const portraitBackBlob = opts.portraitBackBlob ? await maybeCompressToJpeg(opts.portraitBackBlob) : undefined;
+    const landscapeBlob = await maybeCompressToJpeg(opts.landscapeBlob);
+
+    const portraitDataUrl = await blobToDataUrl(portraitBlob);
+    const portraitBackDataUrl = portraitBackBlob ? await blobToDataUrl(portraitBackBlob) : undefined;
+    const landscapeDataUrl = await blobToDataUrl(landscapeBlob);
     const res = await fetch("/api/generate-card", {
       method: "POST",
       headers: { "content-type": "application/json" },
