@@ -2,15 +2,28 @@
 
 import { useCallback, useState } from "react";
 import { Download, Share2 } from "lucide-react";
-import { DEFAULT_SHARE_CAPTION, downloadBlob, shareToX } from "@/lib/share";
+import { buildShareCaption, downloadBlob, shareToX } from "@/lib/share";
 
 interface CardPageActionsProps {
+  /** Portrait PNG for download (the interactive/portrait artifact). */
   portraitUrl: string;
-  cardUrl: string;
+  /** Landscape PNG for sharing — the X-timeline version of the card. */
+  landscapeUrl: string;
+  /** Relative path to this card, e.g. "/card/abc123". */
+  cardPath: string;
+  name: string;
+  role: string;
   fileName: string;
 }
 
-export function CardPageActions({ portraitUrl, cardUrl, fileName }: CardPageActionsProps) {
+export function CardPageActions({
+  portraitUrl,
+  landscapeUrl,
+  cardPath,
+  name,
+  role,
+  fileName,
+}: CardPageActionsProps) {
   const [busy, setBusy] = useState(false);
 
   const onDownload = useCallback(async () => {
@@ -26,12 +39,14 @@ export function CardPageActions({ portraitUrl, cardUrl, fileName }: CardPageActi
   const onShare = useCallback(async () => {
     setBusy(true);
     try {
-      const blob = await (await fetch(portraitUrl)).blob();
-      await shareToX({ caption: DEFAULT_SHARE_CAPTION, file: blob, fileName, ogPath: cardUrl });
+      const blob = await (await fetch(landscapeUrl)).blob();
+      const absUrl = new URL(cardPath, window.location.origin).toString();
+      const caption = buildShareCaption({ name, role, cardUrl: absUrl });
+      await shareToX({ caption, file: blob, fileName, ogPath: cardPath });
     } finally {
       setBusy(false);
     }
-  }, [portraitUrl, fileName, cardUrl]);
+  }, [landscapeUrl, cardPath, name, role, fileName]);
 
   return (
     <div className="flex flex-wrap items-center justify-center gap-3">

@@ -54,7 +54,10 @@ export default async function CardPage({ params }: PageProps) {
       <div className="mt-8">
         <CardPageActions
           portraitUrl={card.portrait_url}
-          cardUrl={`/card/${id}`}
+          landscapeUrl={card.landscape_url}
+          cardPath={`/card/${id}`}
+          name={card.name}
+          role={card.role}
           fileName={`frameingoa-${id}.png`}
         />
       </div>

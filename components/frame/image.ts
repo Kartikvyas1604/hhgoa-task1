@@ -48,45 +48,102 @@ function loadImageFromUrl(src: string): Promise<HTMLImageElement> {
     const img = new Image();
     img.onload = () => resolve(img);
     img.onerror = () =>
-      reject(new Error(`browser could not decode this image (${src.slice(0, 32)}…)`));
+      reject(new Error(`browser could not decode this image (${src.slice(0, 32)}...)`));
     img.src = src;
   });
 }
 
+function errMsg(e: unknown): string {
+  return e instanceof Error && e.message ? e.message : String(e);
+}
+
+/** A decoded image is either an <img> element (EXIF-correct) or an
+ *  ImageBitmap (createImageBitmap path). Both can be drawn to canvas and
+ *  report dimensions, so the rest of the pipeline treats them identically. */
+export type DecodedImage = HTMLImageElement | ImageBitmap;
+
+function decodedSize(img: DecodedImage): { w: number; h: number } {
+  return img instanceof HTMLImageElement
+    ? { w: img.naturalWidth, h: img.naturalHeight }
+    : { w: img.width, h: img.height };
+}
+
+function drawDecoded(ctx: CanvasRenderingContext2D, img: DecodedImage, dw: number, dh: number) {
+  ctx.drawImage(img, 0, 0, dw, dh);
+}
+
 /**
- * Decode a blob through an <img> element. Unlike createImageBitmap:
- *  - <img> applies EXIF orientation in every modern browser (no rotated
- *    iPhone photos),
- *  - it never throws on decode — it signals via onerror, so we always get
- *    the real reason,
- *  - it works on every Android Chrome / iOS Safari.
- * Object URLs first (cheap); FileReader/data-URL as a fallback for browsers
- * or contexts where object URLs fail.
+ * Decode a blob locally — NO fetch() on the File/blob URL is ever used.
+ * Tries three read strategies in order and logs which one works, so a real
+ * failure on any specific browser/phone is visible in the console instead of
+ * being flattened into a generic message:
+ *   1. <img> + URL.createObjectURL — EXIF-correct, cheapest, works everywhere
+ *   2. FileReader.readAsDataURL → <img> — fallback when object URLs fail
+ *   3. createImageBitmap({ imageOrientation: "from-image" }) — last resort
  */
-async function decodeViaImage(blob: Blob): Promise<HTMLImageElement> {
+async function decodeViaImage(blob: Blob): Promise<DecodedImage> {
+  let e1: unknown = null;
+  let e2: unknown = null;
+
   try {
-    return await loadImageFromObjectUrl(blob);
-  } catch (err) {
+    const img = await loadImageFromObjectUrl(blob);
+    console.info("[photo] decode ok via object-URL <img>");
+    return img;
+  } catch (e) {
+    e1 = e;
+    console.warn("[photo] decode via object-URL <img> failed:", e);
+  }
+
+  try {
+    const img = await loadImageFromFileReader(blob);
+    console.info("[photo] decode ok via FileReader <img>");
+    return img;
+  } catch (e) {
+    e2 = e;
+    console.warn("[photo] decode via FileReader <img> failed:", e);
+  }
+
+  if (typeof createImageBitmap === "function") {
     try {
-      return await loadImageFromFileReader(blob);
-    } catch {
-      throw err;
+      const bmp = await createImageBitmap(blob, { imageOrientation: "from-image" });
+      console.info("[photo] decode ok via createImageBitmap");
+      return bmp;
+    } catch (e3) {
+      console.warn("[photo] decode via createImageBitmap failed:", e3);
+      throw new Error(
+        `image decode failed (object-URL: ${errMsg(e1)} | FileReader: ${errMsg(e2)} | createImageBitmap: ${errMsg(e3)})`,
+      );
     }
   }
+
+  throw new Error(
+    `image decode failed (object-URL: ${errMsg(e1)} | FileReader: ${errMsg(e2)} | createImageBitmap: unsupported)`,
+  );
 }
 
 async function convertHeicToJpeg(file: File): Promise<Blob> {
-  const { default: heic2any } = await import("heic2any");
-  const out = await heic2any({
-    blob: file,
-    toType: "image/jpeg",
-    quality: JPEG_QUALITY,
-  });
-  // heic2any returns Blob | Blob[]. Multi-frame HEIC (iPhone Live Photos,
-  // bursts) yields an array — pick the first frame instead of handing a
-  // non-Blob to createObjectURL/createImageBitmap and crashing.
-  if (Array.isArray(out)) return out[0];
-  return out;
+  let heic2any: typeof import("heic2any").default;
+  try {
+    ({ default: heic2any } = await import("heic2any"));
+  } catch (e) {
+    console.error("[photo] heic2any module failed to load:", e);
+    throw new Error("HEIC decoder could not load on this network — try converting to JPG first");
+  }
+  try {
+    const out = await heic2any({
+      blob: file,
+      toType: "image/jpeg",
+      quality: JPEG_QUALITY,
+    });
+    // heic2any returns Blob | Blob[]. Multi-frame HEIC (iPhone Live Photos,
+    // bursts) yields an array — pick the first frame instead of handing a
+    // non-Blob to createObjectURL/createImageBitmap and crashing.
+    if (Array.isArray(out)) return out[0];
+    return out;
+  } catch (e) {
+    console.error("[photo] heic2any conversion failed:", e);
+    throw new Error(`HEIC conversion failed on this device (${errMsg(e)}) — try converting to JPG first`);
+  }
 }
 
 /**
@@ -123,12 +180,13 @@ export async function processPhoto(file: File): Promise<string> {
     }
   }
 
-  let img: HTMLImageElement;
+  let img: DecodedImage;
   try {
     img = await decodeViaImage(src);
+    const { w, h } = decodedSize(img);
     console.info(
       "[photo] decode ok",
-      `${img.naturalWidth}×${img.naturalHeight}`,
+      `${w}×${h}`,
       `${Math.round(performance.now() - start)}ms`,
     );
   } catch (e) {
@@ -136,7 +194,7 @@ export async function processPhoto(file: File): Promise<string> {
     throw e;
   }
 
-  const { naturalWidth: w, naturalHeight: h } = img;
+  const { w, h } = decodedSize(img);
   if (!w || !h) throw new Error("decoded image has no dimensions");
 
   const scale = Math.min(1, WORK_MAX / Math.max(w, h));
@@ -153,7 +211,7 @@ export async function processPhoto(file: File): Promise<string> {
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
   try {
-    ctx.drawImage(img, 0, 0, dw, dh);
+    drawDecoded(ctx, img, dw, dh);
   } catch (e) {
     console.error("[photo] canvas drawImage failed:", e);
     throw e;
@@ -218,12 +276,13 @@ export function canvasThumbDataUrl(
 export async function bitmapFromDataUrl(url: string): Promise<ImageBitmap> {
   const blob = await (await fetch(url)).blob();
   const img = await decodeViaImage(blob);
+  const { w, h } = decodedSize(img);
   const c = document.createElement("canvas");
-  c.width = img.naturalWidth || 1;
-  c.height = img.naturalHeight || 1;
+  c.width = w || 1;
+  c.height = h || 1;
   const ctx = c.getContext("2d");
   if (!ctx) throw new Error("no 2d context");
-  ctx.drawImage(img, 0, 0);
+  drawDecoded(ctx, img, c.width, c.height);
   if (typeof createImageBitmap === "function") return createImageBitmap(c);
   throw new Error("createImageBitmap is unavailable");
 }

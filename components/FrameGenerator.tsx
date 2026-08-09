@@ -12,7 +12,7 @@ import { CardForm } from "@/components/CardForm";
 import { SegmentToggle } from "@/components/OrientationToggle";
 import { ResultPanel } from "@/components/ResultPanel";
 import { Card3DModal } from "@/components/Card3DModal";
-import { DEFAULT_SHARE_CAPTION, downloadBlob, persistCard, shareToX } from "@/lib/share";
+import { downloadBlob, persistCard } from "@/lib/share";
 
 type Status = "idle" | "processing" | "ready" | "error";
 
@@ -36,6 +36,7 @@ export function FrameGenerator() {
   const [textPulse, setTextPulse] = useState(0);
   const [view3DUrl, setView3DUrl] = useState<string | null>(null);
   const [view3DBackUrl, setView3DBackUrl] = useState<string | null>(null);
+  const [genError, setGenError] = useState<string | null>(null);
   // a fresh random seed per photo upload — the builder number/barcode are
   // randomized per card, not derived from name/role
   const [builderSeed, setBuilderSeed] = useState("");
@@ -103,6 +104,7 @@ export function FrameGenerator() {
     setPhotoDataUrl(null);
     setStatus("idle");
     setError(null);
+    setGenError(null);
     setBloom(false);
     hasCelebrated.current = false;
   }, []);
@@ -120,46 +122,41 @@ export function FrameGenerator() {
     }
   }, [photoDataUrl, side, name, role, socials, qrDataUrl, builderSeed, buildFileName]);
 
-  const onShare = useCallback(async () => {
+  const onGenerate = useCallback(async () => {
     if (!photoDataUrl) return;
     setBusy(true);
+    setGenError(null);
     try {
-      const blob = await renderCardToPng({ orientation, side, name, role, socials, photoDataUrl, qrDataUrl, builderSeed });
-
-      // best-effort: persist the front portrait + landscape to the backend
-      // so the shared link gets a real /card/[id] page (3D badge + a proper
-      // OG image showing the actual card). Falls back to the client-only
-      // /share path (still fully functional) if the backend isn't set up.
-      let sharePath = buildSharePath();
-      try {
-        const [portraitFront, portraitBack, landscapeFront] = await Promise.all([
-          side === "front" ? Promise.resolve(blob) : renderCardToPng({ orientation, side: "front", name, role, socials, photoDataUrl, qrDataUrl, builderSeed }),
-          side === "back" ? Promise.resolve(blob) : renderCardToPng({ orientation, side: "back", name, role, socials, photoDataUrl, qrDataUrl, builderSeed }),
-          renderCardToPng({ orientation: "landscape", side: "front", name, role, socials, photoDataUrl, qrDataUrl, builderSeed }),
-        ]);
-        const persisted = await persistCard({
-          name,
-          role,
-          socials,
-          portraitBlob: portraitFront,
-          portraitBackBlob: portraitBack,
-          landscapeBlob: landscapeFront,
-        });
-        if (persisted) sharePath = persisted.path;
-      } catch {
-        /* backend unavailable — sharePath already falls back to /share */
-      }
-
-      await shareToX({
-        caption: DEFAULT_SHARE_CAPTION,
-        file: blob,
-        fileName: buildFileName("png"),
-        ogPath: sharePath,
+      // persist all three real outputs to the backend (Supabase record +
+      // ImageKit-hosted PNGs) so the generated card gets its own unique
+      // /card/[id] page with the interactive 3D badge and a proper
+      // landscape OG image. Then send the user straight there.
+      const [portraitFront, portraitBack, landscapeFront] = await Promise.all([
+        renderCardToPng({ orientation, side: "front", name, role, socials, photoDataUrl, qrDataUrl, builderSeed }),
+        renderCardToPng({ orientation, side: "back", name, role, socials, photoDataUrl, qrDataUrl, builderSeed }),
+        renderCardToPng({ orientation: "landscape", side: "front", name, role, socials, photoDataUrl, qrDataUrl, builderSeed }),
+      ]);
+      const persisted = await persistCard({
+        name,
+        role,
+        socials,
+        portraitBlob: portraitFront,
+        portraitBackBlob: portraitBack,
+        landscapeBlob: landscapeFront,
       });
+      if (persisted) {
+        // full navigation — the 3D page is server-rendered from the DB record
+        window.location.assign(persisted.path);
+      } else {
+        setGenError("Couldn't save your card right now — check your connection and try again.");
+      }
+    } catch (err) {
+      console.error("[card] generate failed:", err);
+      setGenError("Couldn't generate your card right now. Please try again.");
     } finally {
       setBusy(false);
     }
-  }, [photoDataUrl, side, name, role, socials, qrDataUrl, builderSeed, buildFileName, buildSharePath]);
+  }, [photoDataUrl, name, role, socials, qrDataUrl, builderSeed]);
 
   const onView3D = useCallback(async () => {
     if (!photoDataUrl) return;
@@ -264,12 +261,17 @@ export function FrameGenerator() {
               </div>
               <ResultPanel
                 onDownload={onDownload}
-                onShare={onShare}
+                onGenerate={onGenerate}
                 onView3D={onView3D}
                 onReset={reset}
                 busy={busy}
                 bloom={bloom}
               />
+              {genError && (
+                <p role="alert" className="mx-auto mt-3 max-w-[420px] text-center font-mono text-[11px] text-[var(--accent-pink)]">
+                  {genError}
+                </p>
+              )}
             </div>
           </div>
         )}

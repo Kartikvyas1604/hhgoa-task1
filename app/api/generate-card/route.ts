@@ -6,9 +6,9 @@ import { imageKitConfigured, uploadCardImage } from "@/lib/imagekit";
 export const runtime = "nodejs";
 
 // generous ceiling on the base64 payload itself — the *source photo* is
-// capped at 5MB client-side; a composited PNG data URL is comfortably
-// under this, this just guards against abuse.
-const MAX_DATA_URL_LENGTH = 15 * 1024 * 1024;
+// capped at 25MB client-side; a composited PNG data URL (3000×4000+ at
+// render scale) lands around 6–15MB. This just guards against abuse.
+const MAX_DATA_URL_LENGTH = 25 * 1024 * 1024;
 
 interface Body {
   name?: string;

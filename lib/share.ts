@@ -3,13 +3,20 @@ import type { SocialLinks } from "@/components/frame/types";
 export const HASHTAG = "#FrameInGoa";
 
 /**
- * The fixed launch-post caption — every Share to X click uses this exact
- * wording for now. A shorter, non-"I built this tool" caption for people
- * sharing cards *other* than their own is a separate follow-up.
+ * Builds the X caption for a generated card. Always includes the person's
+ * own card link (so the timeline preview shows the landscape OG graphic and
+ * clicking it lands on their 3D card page) and always ends with the
+ * mandatory #FrameInGoa hashtag.
  */
-export const DEFAULT_SHARE_CAPTION = `Just built my Builder ID for @247pmstudio's Hacker House Goa 2026 🌴
-Made it with a frame/ID generator I shipped this week — upload a pic, get your card in seconds.
-#FrameInGoa`;
+export function buildShareCaption(opts: { name?: string; role?: string; cardUrl: string }): string {
+  const name = opts.name?.trim();
+  const role = opts.role?.trim();
+  const lead = name
+    ? `${name} built their Builder ID for @247pmstudio's Hacker House Goa 2026 🌴`
+    : "Just built my Builder ID for @247pmstudio's Hacker House Goa 2026 🌴";
+  const lines = [lead, role ? `— ${role}` : "", "Made with FrameInGoa — upload a pic, get your card in seconds."];
+  return `${lines.filter(Boolean).join("\n")}\n${opts.cardUrl}\n${HASHTAG}`;
+}
 
 export function buildShareUrl(ogPath: string): string {
   const base = window.location.origin;
@@ -24,8 +31,15 @@ export async function shareToX(opts: {
 }): Promise<"shared" | "intent"> {
   const { caption, file, fileName = "frame.png", ogPath } = opts;
 
+  // The link must live in the post text itself — that way the shared
+  // landscape card's link preview (OG image) renders in the timeline AND the
+  // link survives even when sharing via a native share sheet (which strips
+  // any separate URL field).
+  const url = ogPath ? buildShareUrl(ogPath) : window.location.href;
+  const text = caption.includes(url) ? caption : `${caption}\n${url}`;
+
   if (file && typeof navigator !== "undefined" && "share" in navigator) {
-    const shareData: ShareData = { text: caption };
+    const shareData: ShareData = { text };
     const hasFiles = typeof navigator.canShare === "function";
     if (hasFiles) {
       const fileObj =
@@ -42,10 +56,7 @@ export async function shareToX(opts: {
     }
   }
 
-  const url = ogPath ? buildShareUrl(ogPath) : window.location.href;
-  const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-    caption,
-  )}&url=${encodeURIComponent(url)}`;
+  const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
   window.open(tweetUrl, "_blank", "noopener,noreferrer");
   return "intent";
 }

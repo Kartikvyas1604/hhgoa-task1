@@ -1,18 +1,18 @@
 "use client";
 
-import { Boxes, Download, RotateCcw, Share2 } from "lucide-react";
+import { Boxes, Download, RotateCcw, WandSparkles } from "lucide-react";
 import { FloralBorder } from "@/components/Botanicals";
 
 interface ResultPanelProps {
   onDownload: () => void;
-  onShare: () => void;
+  onGenerate: () => void;
   onView3D: () => void;
   onReset: () => void;
   busy?: boolean;
   bloom: boolean;
 }
 
-export function ResultPanel({ onDownload, onShare, onView3D, onReset, busy, bloom }: ResultPanelProps) {
+export function ResultPanel({ onDownload, onGenerate, onView3D, onReset, busy, bloom }: ResultPanelProps) {
   return (
     <div className="mx-auto mt-5 flex w-full max-w-[420px] flex-col items-center gap-3">
       <div className="grid w-full grid-cols-1 gap-2.5 sm:grid-cols-2">
@@ -27,14 +27,18 @@ export function ResultPanel({ onDownload, onShare, onView3D, onReset, busy, bloo
         </button>
         <button
           type="button"
-          onClick={onShare}
+          onClick={onGenerate}
           disabled={busy}
           className="stamp-press flex h-12 items-center justify-center gap-2 rounded-md bg-[var(--accent-pink)] px-4 font-mono text-xs font-bold tracking-wide text-[var(--text-cream)] disabled:opacity-50"
         >
-          <Share2 aria-hidden="true" className="h-4 w-4" />
-          SHARE TO X
+          <WandSparkles aria-hidden="true" className="h-4 w-4" />
+          GENERATE CARD
         </button>
       </div>
+
+      <p className="font-mono text-[10px] leading-relaxed text-[var(--text-cream)]/55">
+        Generate saves your card and opens your shareable 3D page — share it on X from there.
+      </p>
 
       <button
         type="button"
