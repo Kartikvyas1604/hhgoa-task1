@@ -31,8 +31,11 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="flex justify-center bg-[#08683a] py-2 sm:py-3">
-        <PalmTrees className="h-[64px] w-auto sm:h-[86px] lg:h-[100px]" />
+      <div className="relative h-[140px] w-full overflow-hidden bg-[#08683a] sm:h-[180px] lg:h-[220px]">
+        <PalmTrees />
+        <p className="pointer-events-none absolute inset-x-0 bottom-3 text-center font-display text-lg font-black tracking-tight text-[var(--accent-mustard)] drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)] sm:bottom-4 sm:text-xl lg:text-2xl">
+          HH Goa 2026
+        </p>
       </div>
     </footer>
   );

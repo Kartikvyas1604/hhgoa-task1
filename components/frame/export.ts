@@ -37,10 +37,14 @@ function resolveAsset(path: string): Promise<string> {
 
 export async function ensureCardFonts() {
   const fams = fontFamilies();
+  // Every .load() is guarded: a webfont failing to download over a flaky
+  // mobile network rejects with a NetworkError DOMException. Fonts are
+  // cosmetic — a failed font must never be able to fail photo processing
+  // (which shares this promise). Best-effort only.
   await Promise.all([
-    document.fonts.load(`800 64px ${fams.display}`),
-    document.fonts.load(`700 32px ${fams.mono}`),
-    document.fonts.load(`400 32px ${fams.mono}`),
+    document.fonts.load(`800 64px ${fams.display}`).catch(() => {}),
+    document.fonts.load(`700 32px ${fams.mono}`).catch(() => {}),
+    document.fonts.load(`400 32px ${fams.mono}`).catch(() => {}),
     document.fonts.ready.catch(() => {}),
   ]);
 }

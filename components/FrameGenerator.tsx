@@ -57,6 +57,12 @@ export function FrameGenerator() {
   }, [buildSharePath]);
 
   const onPickFile = useCallback(async (file: File) => {
+    console.info("[photo] selected:", {
+      name: file.name,
+      type: file.type || "(empty)",
+      size: file.size,
+      lastModified: file.lastModified,
+    });
     if (!looksLikeImage(file)) {
       setStatus("error");
       setError("That file doesn't look like an image. Try JPG, PNG, WebP, or HEIC.");

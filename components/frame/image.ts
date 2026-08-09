@@ -95,41 +95,89 @@ async function convertHeicToJpeg(file: File): Promise<Blob> {
  * return a browser-friendly JPEG data URL for the card pipeline.
  */
 export async function processPhoto(file: File): Promise<string> {
-  const [jpeg] = await Promise.all([
-    (async () => {
-      let src: Blob = file;
-      if (isHeic(file)) {
-        src = await convertHeicToJpeg(file);
-      }
+  const start = performance.now();
+  console.info("[photo] pick", {
+    name: file.name,
+    type: file.type || "(empty)",
+    size: file.size,
+    lastModified: file.lastModified,
+    heic: isHeic(file),
+  });
 
-      const img = await decodeViaImage(src);
-      const { naturalWidth: w, naturalHeight: h } = img;
-      if (!w || !h) throw new Error("decoded image has no dimensions");
+  // Fonts are loaded purely as a warm-up for the later card render. They
+  // must NEVER be able to fail or slow down photo processing (a webfont
+  // network error used to reject this whole promise with a "network error"
+  // even though the image was fine). Best-effort, fully swallowed.
+  ensureCardFonts().catch((e) =>
+    console.warn("[photo] font warm-up failed (ignored):", e),
+  );
 
-      const scale = Math.min(1, WORK_MAX / Math.max(w, h));
-      const dw = Math.max(1, Math.round(w * scale));
-      const dh = Math.max(1, Math.round(h * scale));
+  let src: Blob = file;
+  if (isHeic(file)) {
+    try {
+      src = await convertHeicToJpeg(file);
+      console.info("[photo] heic → jpeg ok", (src as Blob).size, "bytes");
+    } catch (e) {
+      console.error("[photo] heic convert failed:", e);
+      throw e;
+    }
+  }
 
-      const canvas = document.createElement("canvas");
-      canvas.width = dw;
-      canvas.height = dh;
-      const ctx = canvas.getContext("2d", { alpha: false });
-      if (!ctx) throw new Error("canvas 2D context unavailable on this device");
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, dw, dh);
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = "high";
-      ctx.drawImage(img, 0, 0, dw, dh);
+  let img: HTMLImageElement;
+  try {
+    img = await decodeViaImage(src);
+    console.info(
+      "[photo] decode ok",
+      `${img.naturalWidth}×${img.naturalHeight}`,
+      `${Math.round(performance.now() - start)}ms`,
+    );
+  } catch (e) {
+    console.error("[photo] decode failed:", e);
+    throw e;
+  }
 
-      const dataUrl = canvas.toDataURL("image/jpeg", JPEG_QUALITY);
-      if (typeof dataUrl !== "string" || !dataUrl.startsWith("data:image/jpeg")) {
-        throw new Error("JPEG encoding failed on this device");
-      }
-      return dataUrl;
-    })(),
-    ensureCardFonts(),
-  ]);
-  return jpeg;
+  const { naturalWidth: w, naturalHeight: h } = img;
+  if (!w || !h) throw new Error("decoded image has no dimensions");
+
+  const scale = Math.min(1, WORK_MAX / Math.max(w, h));
+  const dw = Math.max(1, Math.round(w * scale));
+  const dh = Math.max(1, Math.round(h * scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = dw;
+  canvas.height = dh;
+  const ctx = canvas.getContext("2d", { alpha: false });
+  if (!ctx) throw new Error("canvas 2D context unavailable on this device");
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, dw, dh);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  try {
+    ctx.drawImage(img, 0, 0, dw, dh);
+  } catch (e) {
+    console.error("[photo] canvas drawImage failed:", e);
+    throw e;
+  }
+
+  let dataUrl: string;
+  try {
+    dataUrl = canvas.toDataURL("image/jpeg", JPEG_QUALITY);
+  } catch (e) {
+    console.error("[photo] toDataURL failed:", e);
+    throw e;
+  }
+  if (typeof dataUrl !== "string" || !dataUrl.startsWith("data:image/jpeg")) {
+    const err = new Error("JPEG encoding failed on this device");
+    console.error("[photo]", err.message, dataUrl?.slice(0, 24));
+    throw err;
+  }
+  console.info(
+    "[photo] done",
+    `${Math.round(performance.now() - start)}ms`,
+    dataUrl.length,
+    "chars",
+  );
+  return dataUrl;
 }
 
 export function bitmapToDataUrl(
