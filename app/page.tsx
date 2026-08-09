@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import { Timer, Upload, WandSparkles } from "lucide-react";
 import { HomeHero } from "@/components/HomeHero";
-import { Flower } from "@/components/Botanicals";
 
 export const metadata: Metadata = {
-  title: "Frame & ID Card Generator",
+  title: "Builder Card Generator",
   description:
-    "Upload a photo, get a branded HH Goa 2026 PFP frame or Builder ID card in seconds. Download or share to X with #FrameInGoa.",
+    "Upload a photo, get your own HH Goa 2026 Builder card — front, back, portrait or landscape. Download or share to X.",
 };
 
 const steps = [
@@ -19,14 +18,14 @@ const steps = [
   {
     icon: WandSparkles,
     n: "02",
-    title: "Frame",
-    body: "We smart-crop to the frame — never stretch. PFP or Builder ID, your call.",
+    title: "Fill it in",
+    body: "Name, role, socials — the same fields as the real card, nothing more.",
   },
   {
     icon: Timer,
     n: "03",
     title: "Share",
-    body: "Download the PNG or share straight to X with #FrameInGoa pre-filled.",
+    body: "Download the PNG or share straight to X — front, back, portrait or landscape.",
   },
 ];
 
@@ -35,29 +34,25 @@ export default function Home() {
     <>
       <HomeHero />
 
-      {/* how it works */}
-      <section className="mx-auto w-full max-w-6xl px-4 sm:px-6">
-        <div className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-3">
+      <section className="mx-auto w-full max-w-6xl px-4 pt-4 pb-16 sm:px-6 sm:pt-6">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {steps.map((s) => (
-            <div key={s.n} className="bg-panel p-6 sm:p-8">
+            <div
+              key={s.n}
+              className="rounded-lg border-2 border-[var(--accent-mustard)]/35 bg-[var(--bg-jungle-deep)] p-5 sm:p-6"
+            >
               <div className="flex items-center justify-between">
-                <s.icon aria-hidden="true" className="h-5 w-5 text-sunset" />
-                <span className="font-mono text-xs text-muted">{s.n}</span>
+                <s.icon aria-hidden="true" className="h-5 w-5 text-[var(--accent-mustard)]" />
+                <span className="font-mono text-xs text-[var(--text-cream)]/50">{s.n}</span>
               </div>
-              <h2 className="text-stamp mt-4 font-display text-2xl font-bold tracking-tight">
+              <h2 className="mt-4 font-display text-xl font-black tracking-tight text-[var(--accent-mustard)]">
                 {s.title}
               </h2>
-              <p className="mt-2 text-[15px] leading-relaxed text-muted">
+              <p className="mt-2 font-mono text-[12.5px] leading-relaxed text-[var(--text-cream)]/70">
                 {s.body}
               </p>
             </div>
           ))}
-        </div>
-
-        <div className="mt-10 flex items-center gap-3">
-          <span className="h-px flex-1 bg-line" />
-          <Flower />
-          <span className="h-px flex-1 bg-line" />
         </div>
       </section>
     </>

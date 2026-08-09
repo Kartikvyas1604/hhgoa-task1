@@ -3,7 +3,6 @@
 import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { FrameGenerator } from "@/components/FrameGenerator";
-import { DuskBackdrop } from "@/components/DuskBackdrop";
 
 export function HomeHero() {
   const root = useRef<HTMLElement>(null);
@@ -11,49 +10,54 @@ export function HomeHero() {
   useLayoutEffect(() => {
     const ctx = gsap.matchMedia();
     ctx.add("(prefers-reduced-motion: no-preference)", () => {
-      const els = gsap.utils.toArray<HTMLElement>("[data-hero]");
-      gsap.timeline({ defaults: { duration: 0.7, ease: "power3.out" } }).from(
-        els,
-        {
-          y: 26,
-          opacity: 0,
-          stagger: 0.08,
-        },
-      );
+      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+      tl.from("[data-hero-kicker]", { y: 16, opacity: 0, duration: 0.5 })
+        .from(
+          "[data-hero-headline]",
+          { scale: 1.08, opacity: 0, duration: 0.55, ease: "back.out(1.8)" },
+          "-=0.2",
+        )
+        .from("[data-hero-sub]", { y: 20, opacity: 0, duration: 0.5 }, "-=0.25")
+        .from("[data-hero-gen]", { y: 26, opacity: 0, duration: 0.6 }, "-=0.25");
     });
     return () => ctx.revert();
   }, []);
 
   return (
-    <section ref={root} className="relative overflow-hidden">
-      <DuskBackdrop />
-      <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-20 pt-8 sm:px-6 sm:pt-14 lg:pb-28">
-        <div className="max-w-2xl">
+    <section
+      ref={root}
+      className="relative overflow-hidden bg-[var(--bg-jungle)] bg-[url('/assets/sunrise.svg')] bg-cover bg-bottom bg-no-repeat"
+    >
+      <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-24 pt-10 sm:px-6 sm:pt-14 sm:pb-32 lg:pb-40">
+        <div className="mx-auto max-w-2xl text-center">
           <p
-            data-hero
-            className="font-mono text-[11px] tracking-[0.22em] text-sunset sm:text-xs"
+            data-hero-kicker
+            className="font-mono text-[10px] tracking-[0.1em] text-[var(--accent-mustard)] sm:text-xs sm:tracking-[0.22em]"
           >
-            HH GOA 2026 · <span className="text-pink">गोवा</span> · GOA, INDIA ·
-            28–31 OCT 2026
+            HH GOA 2026 · GOA, INDIA · 28–31 OCT 2026
           </p>
+
           <h1
-            data-hero
-            className="text-stamp mt-4 font-display text-5xl font-bold leading-[0.98] tracking-tight sm:text-6xl lg:text-7xl"
+            data-hero-headline
+            className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 font-display text-[13vw] font-black leading-[0.95] tracking-tight text-[var(--accent-mustard)] sm:text-6xl lg:text-7xl"
           >
-            Frame your
-            <br />
-            Goa era.
+            <span>Frame your</span>
+            {/* eslint-disable-next-line @next/next/no-img-element -- static SVG asset, the card's own गोवा badge */}
+            <img src="/assets/goa-hindi.svg" alt="गोवा" className="h-[0.85em] w-auto" />
+            <span>era.</span>
           </h1>
+
           <p
-            data-hero
-            className="mt-5 max-w-lg text-lg leading-relaxed text-ink/85 sm:text-xl"
+            data-hero-sub
+            className="mx-auto mt-5 max-w-lg text-balance text-[15px] leading-relaxed text-[var(--text-cream)]/85 sm:text-lg"
           >
-            Upload a photo, get a branded HH Goa 2026 PFP frame or Builder ID
-            card in seconds. No sign-up, no servers — it happens in your
-            browser, before your chai gets cold.
+            Upload a photo, fill in your details, get your own HH Goa 2026
+            Builder card — front, back, portrait or landscape. Nothing
+            leaves your browser.
           </p>
         </div>
-        <div data-hero className="mx-auto mt-8 w-full max-w-xl sm:mt-10">
+
+        <div data-hero-gen className="mx-auto mt-10 w-full max-w-2xl sm:mt-12">
           <FrameGenerator />
         </div>
       </div>

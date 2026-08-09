@@ -1,33 +1,22 @@
-const PETALS = [-144, -72, 0, 72, 144];
+interface FloralBorderProps {
+  className?: string;
+  bloom?: boolean;
+}
 
-export function Flower({ className = "" }: { className?: string }) {
+/**
+ * FloralBorder — the real card's bottom border (bougainvillea + marigold +
+ * monstera), cropped straight from the source illustration. Closes out the
+ * homepage and the result screen, mirroring the card's own bottom edge.
+ */
+export function FloralBorder({ className = "", bloom = false }: FloralBorderProps) {
   return (
-    <svg
-      viewBox="0 0 32 32"
+    // eslint-disable-next-line @next/next/no-img-element -- static raster crop
+    <img
+      src="/assets/floral-border.png"
+      alt=""
       aria-hidden="true"
-      className={`h-4 w-4 ${className}`}
-    >
-      {PETALS.map((a) => (
-        <ellipse
-          key={a}
-          cx="16"
-          cy="7"
-          rx="6.5"
-          ry="8"
-          transform={`rotate(${a} 16 16)`}
-          fill="#e8348e"
-          stroke="#14150f"
-          strokeWidth="1.6"
-        />
-      ))}
-      <circle
-        cx="16"
-        cy="16"
-        r="4.2"
-        fill="#f4d03f"
-        stroke="#14150f"
-        strokeWidth="1.6"
-      />
-    </svg>
+      loading="lazy"
+      className={`pointer-events-none block w-full object-cover ${bloom ? "floral-bloom" : ""} ${className}`}
+    />
   );
 }

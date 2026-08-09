@@ -4,18 +4,11 @@ import { ArrowRight } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-const VARIANT_LABELS: Record<string, string> = {
-  sunset: "Sunset",
-  jade: "Jade",
-  monsoon: "Monsoon",
-};
-
 interface ShareParams {
-  format: "pfp" | "card";
-  variant: string;
+  orientation: "portrait" | "landscape";
+  side: "front" | "back";
   name: string;
   role: string;
-  img: string;
 }
 
 function clean(value: string | string[] | undefined, max: number): string {
@@ -27,21 +20,19 @@ async function readParams(searchParams: {
   [key: string]: string | string[] | undefined;
 }): Promise<ShareParams> {
   return {
-    format: searchParams.format === "card" ? "card" : "pfp",
-    variant: clean(searchParams.variant, 16) || "sunset",
-    name: clean(searchParams.name, 26),
-    role: clean(searchParams.role, 32),
-    img: clean(searchParams.img, 12_000),
+    orientation: searchParams.orientation === "landscape" ? "landscape" : "portrait",
+    side: searchParams.side === "back" ? "back" : "front",
+    name: clean(searchParams.name, 30),
+    role: clean(searchParams.role, 30),
   };
 }
 
-function ogQuery(p: ShareParams, withImg: boolean): string {
+function ogQuery(p: ShareParams): string {
   const sp = new URLSearchParams();
-  sp.set("format", p.format);
-  sp.set("variant", p.variant);
+  sp.set("orientation", p.orientation);
+  sp.set("side", p.side);
   if (p.name) sp.set("name", p.name);
   if (p.role) sp.set("role", p.role);
-  if (withImg && p.img.startsWith("data:image/")) sp.set("img", p.img);
   return sp.toString();
 }
 
@@ -51,10 +42,9 @@ interface PageProps {
 
 export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
   const p = await readParams(await searchParams);
-  const label = p.format === "pfp" ? "PFP frame" : "Builder ID card";
-  const title = `${p.name ? `${p.name} — ` : ""}HH Goa 2026 ${label}`;
-  const description = `A ${VARIANT_LABELS[p.variant] ?? "Sunset"} HH Goa 2026 ${label.toLowerCase()} made with #FrameInGoa.`;
-  const imgUrl = `/og?${ogQuery(p, false)}`;
+  const title = `${p.name ? `${p.name} — ` : ""}HH Goa 2026 Builder Card`;
+  const description = `A HH Goa 2026 Builder card (${p.orientation}, ${p.side}) made with #FrameInGoa.`;
+  const imgUrl = `/og?${ogQuery(p)}`;
   return {
     title,
     description,
@@ -76,40 +66,30 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
 
 export default async function SharePage({ searchParams }: PageProps) {
   const p = await readParams(await searchParams);
-  const variantLabel = VARIANT_LABELS[p.variant] ?? "Sunset";
-  const frameLabel = p.format === "pfp" ? "PFP FRAME" : "BUILDER ID";
 
   return (
-    <section className="mx-auto flex w-full max-w-3xl flex-col items-center px-4 py-12 text-center sm:px-6 sm:py-20">
-      <p className="font-mono text-[11px] tracking-[0.25em] text-muted">
-        HH GOA 2026 · {frameLabel} · {variantLabel.toUpperCase()}
+    <section className="mx-auto flex w-full max-w-3xl flex-col items-center px-4 py-14 text-center sm:px-6 sm:py-20">
+      <p className="font-mono text-[11px] tracking-[0.25em] text-[var(--text-cream)]/60">
+        HH GOA 2026 · BUILDER CARD · {p.orientation.toUpperCase()}
       </p>
-      <h1 className="text-stamp mt-3 font-display text-3xl font-bold tracking-tight sm:text-4xl">
-        {p.name ? `${p.name}'s frame is ready.` : "Your frame is ready."}
+      <h1 className="text-stamp mt-3 font-display text-3xl font-black tracking-tight sm:text-4xl">
+        {p.name ? `${p.name}'s card is ready.` : "A Builder card is ready."}
       </h1>
-      <p className="mt-2 max-w-md text-[15px] leading-relaxed text-muted">
-        Framed in the terminal, shared from the beach — pull the PNG or make
-        your own.
+      <p className="mt-2 max-w-md font-mono text-[13px] leading-relaxed text-[var(--text-cream)]/70">
+        Made with FrameInGoa for HACKER गोवा HOUSE — pull the PNG or make your own.
       </p>
 
-      {/* eslint-disable-next-line @next/next/no-img-element -- OG-rendered frame, not optimisable */}
+      {/* eslint-disable-next-line @next/next/no-img-element -- OG-rendered preview, not optimisable */}
       <img
-        src={`/og?${ogQuery(p, true)}`}
-        alt={`${frameLabel.toLowerCase()} for ${p.name || "a builder"}`}
-        className="mt-8 w-full max-w-[340px] overflow-hidden rounded-xl border border-line"
+        src={`/og?${ogQuery(p)}`}
+        alt={`Builder card preview for ${p.name || "a builder"}`}
+        className="mt-8 w-full max-w-[420px] overflow-hidden rounded-xl border-2 border-[var(--accent-mustard)]/40"
       />
 
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-        <a
-          href={`/og?${ogQuery(p, true)}`}
-          download={`frameingoas-${p.format}.png`}
-          className="flex h-11 items-center gap-2 rounded-md border border-line bg-void/60 px-5 font-mono text-xs font-bold tracking-wide text-ink transition-colors duration-100 hover:border-ink/40"
-        >
-          download png
-        </a>
         <Link
           href="/"
-          className="cta-scan flex h-11 items-center gap-2 rounded-md bg-terminal px-5 font-mono text-xs font-bold tracking-wide text-void transition-colors duration-100 hover:bg-[#9cffba]"
+          className="stamp-press flex h-11 items-center gap-2 rounded-md bg-[var(--accent-mustard)] px-5 font-mono text-xs font-bold tracking-wide text-[var(--ink-black)]"
         >
           make yours
           <ArrowRight aria-hidden="true" className="h-4 w-4" />

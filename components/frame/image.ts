@@ -1,4 +1,4 @@
-import { ensureFonts } from "@/components/frame/compose";
+import { ensureCardFonts } from "@/components/frame/export";
 
 export function isHeic(file: File): boolean {
   return /heic|heif/i.test(file.type) || /\.heic$/i.test(file.name);
@@ -46,7 +46,7 @@ export async function fileToBitmap(file: File): Promise<ImageBitmap> {
 }
 
 export function processPhoto(file: File): Promise<ImageBitmap> {
-  return Promise.all([ensureFonts(), fileToBitmap(file)]).then(([, bmp]) => bmp);
+  return Promise.all([ensureCardFonts(), fileToBitmap(file)]).then(([, bmp]) => bmp);
 }
 
 export function bitmapToDataUrl(

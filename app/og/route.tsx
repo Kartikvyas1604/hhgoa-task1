@@ -4,45 +4,12 @@ import { ImageResponse } from "next/og";
 
 export const dynamic = "force-dynamic";
 
-const BUILDERS = [
-  "BEACH MODE DEVELOPER",
-  "TERMINAL DWELLER",
-  "RUST WRANGLER",
-  "ZERO-KNOWLEDGE DREAMER",
-  "CHAI-POWERED HACKER",
-  "PROTOCOL PILGRIM",
-  "SHIPPER OF SHIPPERS",
-];
-
-function titleFor(name: string | null): string {
-  if (name && name.trim()) {
-    const t = name.trim().toUpperCase();
-    return t.length > 18 ? `${t.slice(0, 17)}…` : t;
-  }
-  let hash = 0;
-  const key = name ?? "builder";
-  for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
-  return BUILDERS[hash % BUILDERS.length];
-}
-
-const VARIANT_THEMES: Record<
-  string,
-  { bg: string; panel: string; accent: string; accentAlt: string; terminal: string }
-> = {
-  sunset: { bg: "#2a6b45", panel: "#1f5233", accent: "#f4d03f", accentAlt: "#e8348e", terminal: "#a5ffc3" },
-  jade: { bg: "#1f5233", panel: "#17412a", accent: "#a5ffc3", accentAlt: "#f4d03f", terminal: "#f4d03f" },
-  monsoon: { bg: "#2a6b45", panel: "#1f5233", accent: "#e8348e", accentAlt: "#f4d03f", terminal: "#a5ffc3" },
-};
+const BG = "#046835";
+const MUSTARD = "#F4D03F";
+const PINK = "#E8348E";
+const CREAM = "#FBF6E8";
 
 type FontSpec = { name: string; data: ArrayBuffer; weight: 400 | 700; style: "normal" };
-
-function rgba(hex: string, alpha: number): string {
-  const h = hex.replace("#", "");
-  const r = parseInt(h.slice(0, 2), 16);
-  const g = parseInt(h.slice(2, 4), 16);
-  const b = parseInt(h.slice(4, 6), 16);
-  return `rgba(${r},${g},${b},${alpha})`;
-}
 
 let geistFont: FontSpec | null = null;
 
@@ -74,22 +41,18 @@ async function loadFont(family: string, displayName: string): Promise<FontSpec> 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const format = searchParams.get("format") === "card" ? "card" : "pfp";
-    const variant = searchParams.get("variant");
-    const theme = VARIANT_THEMES[variant ?? "sunset"] ?? VARIANT_THEMES.sunset;
-    const name = searchParams.get("name");
-    const role = searchParams.get("role");
-    const img = searchParams.get("img");
-    const embedImg =
-      img && img.startsWith("data:image/") && img.length < 12_000 ? img : null;
-    const title = titleFor(name);
-    const roleText = role?.trim() ? role.trim().toUpperCase() : "FULL-STACK FUTURIST";
+    const orientation = searchParams.get("orientation") === "landscape" ? "landscape" : "portrait";
+    const side = searchParams.get("side") === "back" ? "back" : "front";
+    const name = searchParams.get("name")?.trim();
+    const role = searchParams.get("role")?.trim();
+    const title = name ? name.toUpperCase() : "YOUR NAME HERE";
+    const roleText = role ? role.toUpperCase() : "BUILDER";
 
     const base = await fallbackFont();
     let extras: FontSpec[] = [];
     try {
       extras = (await Promise.allSettled([
-        loadFont("Fraunces:opsz,wght@9..144,700", "Fraunces"),
+        loadFont("Fraunces:opsz,wght@9..144,800", "Fraunces"),
         loadFont("JetBrains+Mono:wght@700", "JetBrains Mono"),
       ]))
         .filter((r): r is PromiseFulfilledResult<FontSpec> => r.status === "fulfilled")
@@ -99,7 +62,8 @@ export async function GET(request: Request) {
     }
     const fonts = [...extras, base];
 
-    const previewH = format === "card" ? 480 : 400;
+    const cardW = orientation === "landscape" ? 420 : 300;
+    const cardH = orientation === "landscape" ? 236 : 406;
 
     return new ImageResponse(
       (
@@ -108,219 +72,75 @@ export async function GET(request: Request) {
             width: "100%",
             height: "100%",
             display: "flex",
-            background: theme.bg,
-            color: "#eef1e7",
+            background: BG,
+            color: CREAM,
             position: "relative",
             overflow: "hidden",
           }}
         >
           <div
             style={{
-              position: "absolute",
-              bottom: -220,
-              left: "50%",
-              width: 700,
-              height: 700,
-              borderRadius: "50%",
-              transform: "translateX(-50%)",
-              background: `radial-gradient(circle, ${rgba(theme.accent, 0.45)} 0%, ${rgba(theme.accentAlt, 0.16)} 42%, transparent 70%)`,
-            }}
-          />
-          <div
-            style={{
               display: "flex",
               flexDirection: "row",
               alignItems: "center",
-              gap: 64,
+              gap: 56,
               padding: "56px 64px",
             }}
           >
+            <div
+              style={{
+                width: cardW,
+                height: cardH,
+                borderRadius: 20,
+                border: `8px solid ${MUSTARD}`,
+                background: "#0e3b26",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "flex-end",
+                padding: 20,
+                position: "relative",
+                flexShrink: 0,
+              }}
+            >
               <div
                 style={{
-                  width: 400,
-                  height: previewH,
-                  background: theme.panel,
-                  borderRadius: 24,
-                  border: "3px solid rgba(238,241,231,0.14)",
-                  padding: 22,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
+                  position: "absolute",
+                  top: 20,
+                  left: 20,
+                  width: cardW * 0.42,
+                  height: cardW * 0.42,
+                  borderRadius: "50%",
+                  border: `4px dashed ${MUSTARD}`,
+                  opacity: 0.6,
                 }}
-              >
-              <div
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  borderRadius: 14,
-                  border: `30px solid ${theme.accent}`,
-                  background: `linear-gradient(180deg, ${theme.bg} 0%, ${theme.panel} 62%, ${theme.accent} 135%)`,
-                  display: "flex",
-                  position: "relative",
-                  overflow: "hidden",
-                }}
-              >
-                {embedImg ? (
-                  <>
-                    {/* eslint-disable-next-line @next/next/no-img-element -- data URL from the share link */}
-                    <img
-                      src={embedImg}
-                      alt=""
-                      style={{
-                        position: "absolute",
-                        inset: 0,
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }}
-                    />
-                    <div
-                      style={{
-                        position: "absolute",
-                        inset: 0,
-                        background: `linear-gradient(180deg, ${rgba(theme.bg, 0.55)} 0%, transparent 34%, transparent 62%, ${rgba(theme.bg, 0.72)} 100%)`,
-                      }}
-                    />
-                  </>
-                ) : (
-                  <>
-                    <div
-                      style={{
-                        position: "absolute",
-                        bottom: -70,
-                        left: 6,
-                        width: 230,
-                        height: 230,
-                        borderRadius: "50%",
-                        background: `radial-gradient(circle, ${rgba(theme.accent, 0.95)} 0%, ${rgba(theme.accent, 0.35)} 50%, transparent 72%)`,
-                      }}
-                    />
-                    <div
-                      style={{
-                        position: "absolute",
-                        bottom: 4,
-                        right: 44,
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 112,
-                          height: 112,
-                          borderRadius: "50%",
-                          background: "rgba(238,241,231,0.9)",
-                        }}
-                      />
-                      <div
-                        style={{
-                          width: 200,
-                          height: 96,
-                          borderTopLeftRadius: 90,
-                          borderTopRightRadius: 90,
-                          background: "rgba(238,241,231,0.9)",
-                        }}
-                      />
-                    </div>
-                  </>
-                )}
-                <div
-                  style={{
-                    position: "absolute",
-                    top: 10,
-                    left: 18,
-                    fontFamily: "'JetBrains Mono'",
-                    fontSize: 17,
-                    letterSpacing: 2,
-                    color: "#eef1e7",
-                  }}
-                >
-                  HH GOA 2026
-                </div>
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: 10,
-                    right: 16,
-                    fontFamily: "'JetBrains Mono'",
-                    fontSize: 16,
-                    color: theme.terminal,
-                  }}
-                >
-                  #FrameInGoa
-                </div>
+              />
+              <div style={{ fontFamily: "'Fraunces'", fontWeight: 800, fontSize: 26, color: MUSTARD }}>
+                {title.length > 16 ? `${title.slice(0, 15)}…` : title}
+              </div>
+              <div style={{ fontFamily: "'JetBrains Mono'", fontSize: 14, color: CREAM, opacity: 0.8 }}>
+                {roleText}
               </div>
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 18,
-                maxWidth: 560,
-              }}
-            >
-              <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-                <span
-                  style={{
-                    fontFamily: "'JetBrains Mono'",
-                    fontSize: 17,
-                    color: theme.accent,
-                    letterSpacing: 1,
-                  }}
-                >
-                  {format === "pfp" ? "PFP FRAME" : "BUILDER ID"}
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 520 }}>
+              <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                <span style={{ fontFamily: "'JetBrains Mono'", fontSize: 16, color: MUSTARD, letterSpacing: 1 }}>
+                  {side === "front" ? "BUILDER CARD" : "BUILDER CARD · BACK"}
                 </span>
-                <span
-                  style={{
-                    fontFamily: "'JetBrains Mono'",
-                    fontSize: 15,
-                    color: "rgba(238,241,231,0.5)",
-                  }}
-                >
-                  HH GOA 2026 · GOA, INDIA · 28–31 OCT
+                <span style={{ fontFamily: "'JetBrains Mono'", fontSize: 14, color: "rgba(251,246,232,0.55)" }}>
+                  HH GOA 2026 · 28–31 OCT
                 </span>
               </div>
-              <div
-                style={{
-                  fontSize: 62,
-                  lineHeight: 1.02,
-                  fontWeight: 700,
-                  fontFamily: "'Fraunces'",
-                }}
-              >
+              <div style={{ fontSize: 58, lineHeight: 1.02, fontWeight: 800, fontFamily: "'Fraunces'", color: MUSTARD }}>
                 {title}
               </div>
-              <div
-                style={{
-                  fontFamily: "'JetBrains Mono'",
-                  fontSize: 24,
-                  color: "#bcd7c6",
-                }}
-              >
-                {`>_ ${roleText}`}
+              <div style={{ fontFamily: "'JetBrains Mono'", fontSize: 22, color: CREAM, opacity: 0.85 }}>
+                {roleText}
               </div>
-              <div
-                style={{
-                  marginTop: 10,
-                  fontFamily: "'JetBrains Mono'",
-                  fontSize: 19,
-                  color: "#eef1e7",
-                }}
-              >
-                Ready for HH Goa 2026 — framed in the terminal, shared from the beach.
+              <div style={{ marginTop: 6, fontFamily: "'JetBrains Mono'", fontSize: 18, color: CREAM, opacity: 0.75 }}>
+                I&apos;m participating in HACKER HOUSE GOA.
               </div>
-              <div
-                style={{
-                  fontFamily: "'JetBrains Mono'",
-                  fontSize: 21,
-                  color: theme.terminal,
-                }}
-              >
-                #FrameInGoa
-              </div>
+              <div style={{ fontFamily: "'JetBrains Mono'", fontSize: 20, color: PINK }}>#FrameInGoa</div>
             </div>
           </div>
         </div>

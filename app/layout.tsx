@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, JetBrains_Mono, Newsreader } from "next/font/google";
 import { SmoothScroll } from "@/components/SmoothScroll";
-import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import "./globals.css";
 
@@ -29,16 +28,16 @@ const siteUrl =
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "FrameInGoa — HH Goa 2026 Frame & ID Card Generator",
+    default: "FrameInGoa — HH Goa 2026 Builder Card Generator",
     template: "%s · FrameInGoa",
   },
   description:
-    "Upload a photo, get a branded HH Goa 2026 PFP frame or Builder ID card in seconds. Download it or share to X with #FrameInGoa pre-filled.",
+    "Upload a photo, get your own HH Goa 2026 Builder card — front, back, portrait or landscape. Download it or share to X.",
   applicationName: "FrameInGoa",
   keywords: [
     "HH Goa 2026",
     "hackathon",
-    "PFP frame",
+    "builder card",
     "ID card",
     "builder",
     "#FrameInGoa",
@@ -46,12 +45,12 @@ export const metadata: Metadata = {
   openGraph: {
     title: "FrameInGoa — HH Goa 2026",
     description:
-      "Upload a photo → branded HH Goa 2026 PFP frame or Builder ID card in seconds. Download or share to X with #FrameInGoa.",
+      "Upload a photo → your own HH Goa 2026 Builder card in seconds. Download or share to X.",
     siteName: "FrameInGoa",
     type: "website",
     images: [
       {
-        url: "/og?format=pfp&variant=sunset",
+        url: "/og?orientation=portrait&side=front",
         width: 1200,
         height: 630,
         alt: "HH Goa 2026 FrameInGoa — frame your Goa era",
@@ -60,12 +59,12 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    images: ["/og?format=pfp&variant=sunset"],
+    images: ["/og?orientation=portrait&side=front"],
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#2a6b45",
+  themeColor: "#046835",
   colorScheme: "dark",
 };
 
@@ -81,7 +80,6 @@ export default function RootLayout({
     >
       <body className="min-h-dvh bg-void font-body text-ink antialiased">
         <SmoothScroll />
-        <Header />
         <main>{children}</main>
         <Footer />
       </body>
