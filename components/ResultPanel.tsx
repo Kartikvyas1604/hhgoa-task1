@@ -32,7 +32,7 @@ export function ResultPanel({ onDownload, onGenerate, onView3D, onReset, busy, b
           className="stamp-press flex h-12 items-center justify-center gap-2 rounded-md bg-[var(--accent-pink)] px-4 font-mono text-xs font-bold tracking-wide text-[var(--text-cream)] disabled:opacity-50"
         >
           <WandSparkles aria-hidden="true" className="h-4 w-4" />
-          GENERATE CARD
+          {busy ? "SAVING CARD…" : "GENERATE CARD"}
         </button>
       </div>
 

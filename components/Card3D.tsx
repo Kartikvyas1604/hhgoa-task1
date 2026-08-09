@@ -51,6 +51,46 @@ interface BandProps {
  * (pmndrs/react-three-rapier + meshline), swapping their branded card face
  * for ours.
  */
+/**
+ * The lanyard band texture. The source is a very thin, non-power-of-two SVG
+ * strip (2418×74). Sampling it raw with LinearFilter aliases into the
+ * shimmering/"glitchy" moiré the band had while swinging. Fix: bake it once
+ * into a power-of-two canvas (2048×128) so it can be mipmapped cleanly on
+ * every GPU (NPOT mipmaps are WebGL2-only), then use linear-mipmap filtering
+ * so distance/motion samples a pre-filtered mip instead of raw pixels.
+ */
+function useBandTexture(): THREE.Texture {
+  const src = useTexture("/assets/border-botanical.svg");
+  // useTexture() suspends, so src.image is already decoded here — bake
+  // synchronously instead of in an effect, so the material never renders a
+  // half-configured texture.
+  return useMemo(() => {
+    const img = src.image as HTMLImageElement | null;
+    if (!img || img.width === 0) return src;
+    // 2048x64 is power-of-two and keeps the source's ~32:1 aspect, so the
+    // botanical pattern reads exactly as designed — no vertical stretching.
+    const W = 2048;
+    const H = 64;
+    const canvas = document.createElement("canvas");
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return src;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(img, 0, 0, W, H);
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.generateMipmaps = true;
+    tex.minFilter = THREE.LinearMipmapLinearFilter;
+    tex.magFilter = THREE.LinearFilter;
+    tex.anisotropy = 4;
+    tex.colorSpace = src.colorSpace;
+    tex.needsUpdate = true;
+    return tex;
+  }, [src]);
+}
 function Band({ imageUrl, backImageUrl, maxSpeed = 50, minSpeed = 10 }: BandProps) {
   const band = useRef<THREE.Mesh & { geometry: MeshLineGeometry }>(null!);
   const fixed = useRef<RapierRigidBody>(null!);
@@ -67,25 +107,7 @@ function Band({ imageUrl, backImageUrl, maxSpeed = 50, minSpeed = 10 }: BandProp
   };
   const texture = useTexture(imageUrl);
   const backTexture = useTexture(backImageUrl || imageUrl);
-  const bandTexture = useTexture("/assets/border-botanical.svg");
-  // texture wrap/anisotropy has no JSX-prop path on a useTexture() result —
-  // configure it as a side effect, same as upstream does for the band texture
-  /* eslint-disable react-hooks/immutability -- three.js textures are mutable
-   * by design; this is the standard drei/three.js way to configure tiling on
-   * a useTexture() result, same as the upstream reference this is ported from */
-  useEffect(() => {
-    bandTexture.wrapS = THREE.RepeatWrapping;
-    bandTexture.wrapT = THREE.RepeatWrapping;
-    // the source SVG is a thin, non-power-of-two strip (2418x74); mipmapping
-    // a repeated NPOT texture that thin is what produces the shimmering/
-    // "glitchy" moiré on the band, so skip mip generation and sample linearly
-    bandTexture.generateMipmaps = false;
-    bandTexture.minFilter = THREE.LinearFilter;
-    bandTexture.magFilter = THREE.LinearFilter;
-    bandTexture.anisotropy = 1;
-    bandTexture.needsUpdate = true;
-  }, [bandTexture]);
-  /* eslint-enable react-hooks/immutability */
+  const bandTexture = useBandTexture();
   // mutable Three.js object, deliberately not React state — its .points are
   // mutated in place every frame inside useFrame below, same as upstream
   const curve = useMemo(() => {

@@ -6,7 +6,7 @@ import { CardArt } from "@/components/frame/CardArt";
 import { renderCardToPng } from "@/components/frame/export";
 import { generateQrDataUrl } from "@/components/frame/qr";
 import { MAX_FILE_BYTES, looksLikeImage, processPhoto } from "@/components/frame/image";
-import type { Side, SocialLinks } from "@/components/frame/types";
+import type { Orientation, Side, SocialLinks } from "@/components/frame/types";
 import { UploadDropzone } from "@/components/UploadDropzone";
 import { CardForm } from "@/components/CardForm";
 import { SegmentToggle } from "@/components/OrientationToggle";
@@ -19,7 +19,7 @@ type Status = "idle" | "processing" | "ready" | "error";
 /** No orientation toggle any more — every card downloads/shares as the
  * portrait, interactive artifact; the X/timeline preview is always
  * generated as landscape separately (see /share's OG image). */
-const orientation = "portrait" as const;
+const [orientation, setOrientation] = useState<Orientation>("portrait");
 
 export function FrameGenerator() {
   const [side, setSide] = useState<Side>("front");
@@ -131,11 +131,27 @@ export function FrameGenerator() {
       // ImageKit-hosted PNGs) so the generated card gets its own unique
       // /card/[id] page with the interactive 3D badge and a proper
       // landscape OG image. Then send the user straight there.
-      const [portraitFront, portraitBack, landscapeFront] = await Promise.all([
-        renderCardToPng({ orientation, side: "front", name, role, socials, photoDataUrl, qrDataUrl, builderSeed }),
-        renderCardToPng({ orientation, side: "back", name, role, socials, photoDataUrl, qrDataUrl, builderSeed }),
-        renderCardToPng({ orientation: "landscape", side: "front", name, role, socials, photoDataUrl, qrDataUrl, builderSeed }),
-      ]);
+      // Renders are sequential at scale 2 — three concurrent 3000px PNG
+      // encodes blow through mobile memory and freeze the tab, which reads
+      // as a dead GENERATE button. Scale 2 (2400px) is still far more than
+      // the 3D page (~440px) or OG card (1200px) ever displays.
+      const SCALE = 2;
+      const render = (over: { orientation?: typeof orientation; side?: Side }) =>
+        renderCardToPng({
+          orientation,
+          side: "front",
+          name,
+          role,
+          socials,
+          photoDataUrl,
+          qrDataUrl,
+          builderSeed,
+          scale: SCALE,
+          ...over,
+        });
+      const portraitFront = await render({ side: "front" });
+      const portraitBack = await render({ side: "back" });
+      const landscapeFront = await render({ orientation: "landscape" });
       const persisted = await persistCard({
         name,
         role,
@@ -164,10 +180,9 @@ export function FrameGenerator() {
     try {
       // the interactive 3D badge shows both real sides — front by default,
       // flips to the real back design (not a blank plane) when spun around
-      const [frontBlob, backBlob] = await Promise.all([
-        renderCardToPng({ orientation, side: "front", name, role, socials, photoDataUrl, qrDataUrl, builderSeed }),
-        renderCardToPng({ orientation, side: "back", name, role, socials, photoDataUrl, qrDataUrl, builderSeed }),
-      ]);
+      // sequential + scale 2 keeps mobile memory in check (see onGenerate)
+      const frontBlob = await renderCardToPng({ orientation, side: "front", name, role, socials, photoDataUrl, qrDataUrl, builderSeed, scale: 2 });
+      const backBlob = await renderCardToPng({ orientation, side: "back", name, role, socials, photoDataUrl, qrDataUrl, builderSeed, scale: 2 });
       const url = URL.createObjectURL(frontBlob);
       const backUrl = URL.createObjectURL(backBlob);
       view3DUrlRef.current = url;

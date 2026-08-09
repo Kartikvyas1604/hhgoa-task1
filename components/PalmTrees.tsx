@@ -1,7 +1,9 @@
 /**
- * PalmTrees — the real hhgoa.com palm-tree + floral-border illustration,
- * shown at its natural aspect ratio (never cropped). Sized by height only —
- * pass a height (e.g. "h-[90px]") via className and width follows automatically.
+ * PalmTrees — the real hhgoa.com palm-tree + floral-border illustration.
+ * The source art is a wide 1440×887 banner with palms on both edges and a
+ * floral border only along the very bottom, so it's rendered full-width and
+ * cropped (object-cover, anchored bottom) to read as a proper border strip —
+ * sizing by height alone would shrink the whole banner, dead space included.
  */
 export function PalmTrees({ className = "" }: { className?: string }) {
   return (
@@ -10,7 +12,7 @@ export function PalmTrees({ className = "" }: { className?: string }) {
       src="/assets/real-footer-trees.svg"
       alt=""
       aria-hidden="true"
-      className={`pointer-events-none block w-auto ${className}`}
+      className={`pointer-events-none block h-full w-full object-cover object-bottom ${className}`}
     />
   );
 }

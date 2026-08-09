@@ -91,11 +91,13 @@ export async function persistCard(opts: {
   landscapeBlob: Blob;
 }): Promise<PersistedCard | null> {
   try {
-    const [portraitDataUrl, portraitBackDataUrl, landscapeDataUrl] = await Promise.all([
-      blobToDataUrl(opts.portraitBlob),
-      opts.portraitBackBlob ? blobToDataUrl(opts.portraitBackBlob) : Promise.resolve(undefined),
-      blobToDataUrl(opts.landscapeBlob),
-    ]);
+    // sequential, not Promise.all — big PNG blobs read into base64 strings
+    // hit peak memory on mobile when done concurrently
+    const portraitDataUrl = await blobToDataUrl(opts.portraitBlob);
+    const portraitBackDataUrl = opts.portraitBackBlob
+      ? await blobToDataUrl(opts.portraitBackBlob)
+      : undefined;
+    const landscapeDataUrl = await blobToDataUrl(opts.landscapeBlob);
     const res = await fetch("/api/generate-card", {
       method: "POST",
       headers: { "content-type": "application/json" },
