@@ -99,7 +99,7 @@ export async function persistCard(opts: {
       if (blob.size <= targetBytes) return blob;
       if (typeof createImageBitmap !== "function") return blob;
       try {
-        const img = await createImageBitmap(blob as any);
+        const img = await createImageBitmap(blob);
         const canvas = new OffscreenCanvas(img.width, img.height);
         const ctx = canvas.getContext("2d");
         if (!ctx) return blob;
@@ -112,7 +112,7 @@ export async function persistCard(opts: {
         }
         // fall back to last attempt
         return await canvas.convertToBlob({ type: "image/jpeg", quality: 0.5 });
-      } catch (err) {
+      } catch {
         return blob;
       }
     }

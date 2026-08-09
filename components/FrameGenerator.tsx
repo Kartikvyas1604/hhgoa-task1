@@ -135,7 +135,7 @@ export function FrameGenerator() {
       // encodes blow through mobile memory and freeze the tab, which reads
       // as a dead GENERATE button. Scale 2 (2400px) is still far more than
       // the 3D page (~440px) or OG card (1200px) ever displays.
-      const SCALE = 2;
+      const SCALE = 1.0;
       const render = (over: { orientation?: typeof orientation; side?: Side }) =>
         renderCardToPng({
           orientation,
@@ -176,10 +176,10 @@ export function FrameGenerator() {
     setBusy(true);
     try {
       // the interactive 3D badge shows both real sides — front by default,
-      // flips to the real back design (not a blank plane) when spun around
-      // sequential + scale 2 keeps mobile memory in check (see onGenerate)
-      const frontBlob = await renderCardToPng({ orientation, side: "front", name, role, socials, photoDataUrl, qrDataUrl, builderSeed, scale: 2 });
-      const backBlob = await renderCardToPng({ orientation, side: "back", name, role, socials, photoDataUrl, qrDataUrl, builderSeed, scale: 2 });
+      // flips to the real back design when spun around
+      // sequential + scale 1.5 keeps mobile memory in check (see onGenerate)
+      const frontBlob = await renderCardToPng({ orientation, side: "front", name, role, socials, photoDataUrl, qrDataUrl, builderSeed, scale: 1.5 });
+      const backBlob = await renderCardToPng({ orientation, side: "back", name, role, socials, photoDataUrl, qrDataUrl, builderSeed, scale: 1.5 });
       const url = URL.createObjectURL(frontBlob);
       const backUrl = URL.createObjectURL(backBlob);
       view3DUrlRef.current = url;
