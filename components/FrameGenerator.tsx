@@ -19,7 +19,7 @@ type Status = "idle" | "processing" | "ready" | "error";
 /** No orientation toggle any more — every card downloads/shares as the
  * portrait, interactive artifact; the X/timeline preview is always
  * generated as landscape separately (see /share's OG image). */
-const [orientation, setOrientation] = useState<Orientation>("portrait");
+const orientation: Orientation = "portrait";
 
 export function FrameGenerator() {
   const [side, setSide] = useState<Side>("front");
@@ -160,15 +160,12 @@ export function FrameGenerator() {
         portraitBackBlob: portraitBack,
         landscapeBlob: landscapeFront,
       });
-      if (persisted) {
-        // full navigation — the 3D page is server-rendered from the DB record
-        window.location.assign(persisted.path);
-      } else {
-        setGenError("Couldn't save your card right now — check your connection and try again.");
-      }
+      // full navigation — the 3D page is server-rendered from the DB record
+      window.location.assign(persisted.path);
     } catch (err) {
       console.error("[card] generate failed:", err);
-      setGenError("Couldn't generate your card right now. Please try again.");
+      const reason = err instanceof Error && err.message ? err.message : String(err);
+      setGenError(`Couldn't save your card: ${reason}`);
     } finally {
       setBusy(false);
     }

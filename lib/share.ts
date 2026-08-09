@@ -78,9 +78,9 @@ export interface PersistedCard {
 /**
  * Persists the two rendered PNGs (portrait for the 3D page, landscape for
  * the X-timeline OG image) to the backend and returns the real /card/[id]
- * path. Returns null if the backend isn't configured or the request fails
- * — callers should fall back to the query-param-based /share path, which
- * needs no backend.
+ * path. Throws with the server's own reason when the backend isn't
+ * configured or the request fails — callers should show that reason and can
+ * fall back to the query-param-based /share path, which needs no backend.
  */
 export async function persistCard(opts: {
   name: string;
@@ -89,7 +89,7 @@ export async function persistCard(opts: {
   portraitBlob: Blob;
   portraitBackBlob?: Blob;
   landscapeBlob: Blob;
-}): Promise<PersistedCard | null> {
+}): Promise<PersistedCard> {
   try {
     // sequential, not Promise.all — big PNG blobs read into base64 strings
     // hit peak memory on mobile when done concurrently
@@ -110,12 +110,23 @@ export async function persistCard(opts: {
         landscapeDataUrl,
       }),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      // surface the server's own reason — a 503 here means the Supabase /
+      // ImageKit env vars aren't set, which is nothing to do with the user's
+      // connection and shouldn't be reported as if it were.
+      const reason = await res
+        .json()
+        .then((d: { error?: string }) => d.error)
+        .catch(() => null);
+      console.error("[card] persist failed:", res.status, reason);
+      throw new Error(reason || `The server rejected the card (HTTP ${res.status}).`);
+    }
     const data = (await res.json()) as { id: string };
-    if (!data.id) return null;
+    if (!data.id) throw new Error("The server saved no card id.");
     return { id: data.id, path: `/card/${data.id}` };
-  } catch {
-    return null;
+  } catch (err) {
+    console.error("[card] persist failed:", err);
+    throw err;
   }
 }
 
